@@ -7,35 +7,39 @@
 //int MAX = 25;
 char first[MAX];
 char second[MAX];
+char str[MAX];
 
-void reverseString(char input[], char reversedStr[] );
+void reverseString(char input[]);
 
 int main(){
 	scanf("%s", first);
 	scanf("%s", second);
-	printf("this is %s - %s \n", second, first);
+	printf("first: %s - second: %s \n", second, first);
 	
-	char reversed[MAX];
-	reverseString(second, reversed);
-	printf("reversed: %s\n", reversed);
+	reverseString(second);
+	printf("reversed upper and lower: %s\n", str);
+	
+	//test out the strcmp function
+	//we expect to get -32 if the first char of string second is Capital
+	//we expect to get 32 if the first char of string second is lower case
+        //strcmp stops at the first mismatch... (always the first char for this example)
+	printf("strcmp(): %d \n", strcmp(second, str));
+	
 	return 0;
 }
 
 //should still replace MAX with sizeof() in following
-void reverseString(char input[], char reversedStr[] ){
+void reverseString(char input[]){
 	int i;
 	int len = strlen(input);
+	//alternative for for loop middle condition is: s[i]!='\0' => no string.h needed
 	for (i = 0; i < len; i++) {
-		int ascii = (int)input[i];	//get the ascii value of the char by casting it to an int
 		printf("%c \n", input[i]);
-		if ('A' >= ascii && ascii <= 'Z'){
-			ascii += 32;
-		} else if ('a' >= ascii && ascii <= 'z'){
-			ascii -= 32;
+		if (input[i] >= 'A' && input[i] <= 'Z'){
+			str[i] = input[i] + 32;
+		} else if (input[i] >= 'a' && input[i] <= 'z'){
+			str[i] = input[i] - 32;
 		}
-		reversedStr[i] = (char)ascii;
         }
-	//reversedStr[len] += "\0";
-	printf("%s\n", reversedStr);
-	reversedStr;
+	printf("%s\n", str);
 }
