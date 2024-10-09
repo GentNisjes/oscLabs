@@ -2,20 +2,31 @@
 #include <string.h>
 
 //we need to define MAX at compile time since its needed to run the main
-#define MAX 20
+#define MAX 100
 
-//int MAX = 25;
-char first[MAX];
-char second[MAX];
+//important when initialising arrays:
+//either specify the size of the array and leave value open
+//or give array a value and dont specify the size
+char first[] = "empty firstname";
+char second[] = "empty secondname";
+int year = 0;
 char str[MAX];
+char name[MAX];
+char *input = "first second 0";
+
 
 void reverseString(char input[]);
 
 int main(){
-	scanf("%s", first);
+        printf("enter your first name: ");
+	scanf("%s", first);     //scanf("%s", &first[0]); would do the same, strings dont need the & sign
+	printf("enter your second name: ");
 	scanf("%s", second);
-	printf("first: %s - second: %s \n", second, first);
+	printf("enter your birth year: ");
+	scanf("%d", &year);     //ints do need the &sign, same as with chars
+	printf("first: %s - second: %s - birth year: %i \n", first, second, year);
 	
+	//test out reversing lower to upper and the other way around
 	reverseString(second);
 	printf("reversed upper and lower: %s\n", str);
 	
@@ -24,6 +35,32 @@ int main(){
 	//we expect to get 32 if the first char of string second is lower case
         //strcmp stops at the first mismatch... (always the first char for this example)
 	printf("strcmp(): %d \n", strcmp(second, str));
+	
+	//test out strcpy
+	strncpy(name, first, sizeof(name)-1); //copy as much as possible, but leave space for the str end char
+	name[strlen(name)] = '\0';
+	printf("strncpy(): %s \n", name);
+	
+	strncat(name, second, sizeof(name) - strlen(name) - 1);
+	printf("strncat(): %s \n", name);
+	
+	//test out snprintf()
+	//concatenates in a certain format
+	snprintf(name, sizeof(name), "%s %s %d", first, second, year);
+	printf("snprintf(): %s \n", name);
+	
+	//test out sscanf()
+	//sscanf extracts data from name, following a certain format and saves that data into seperate vars
+	int amount = sscanf(name, "%s %s %d", first, second, &year);
+	//printf("%d \n", amount);
+	if (amount == 3){
+	        printf("sscanf(): \n");
+		printf("first: %s\n", first);
+		printf("second: %s\n", second);
+		printf("birthyear: %d\n", year);
+	} else {
+		printf("failed scanning \n");
+	}
 	
 	return 0;
 }
