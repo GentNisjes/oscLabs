@@ -66,7 +66,7 @@ dplist_t *dpl_remove_at_index(dplist_t *list, int index);
  * - If 'index' is 0 or negative, a reference to the first list node is returned.
  * - If 'index' is bigger than the number of list nodes in the list, a reference to the last list node is returned.
  * - If the list is empty, NULL is returned.
- * - If 'list' is is NULL, NULL is returned.
+ * - If 'list' is NULL, NULL is returned.
  * \param list a pointer to the list
  * \param index the position of the node for which the reference is returned
  * \return a pointer to the list node at the given index or NULL

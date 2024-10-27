@@ -17,7 +17,7 @@
 // declare a structure for the node: pointer to prev, to next and the value
 struct dplist_node {
     dplist_node_t *prev, *next;
-    element_t element;
+    element_t element;  //see the dplist.h -> element_t is a char
 };
 
 // declaration of a struct for the head of the linked list
@@ -122,38 +122,82 @@ dplist_t *dpl_insert_at_index(dplist_t *list, element_t element, int index) {
 
 dplist_t *dpl_remove_at_index(dplist_t *list, int index) {
 
-    //TODO: add your code here
-    return NULL;
+    dplist_node_t *current = list->head;
+    if (dpl_size(list) == 0) {
+        return list;
+    }
+    if (list->head == NULL) {
+        return NULL;
+    }
+    if (index <= 0) {
+        list->head = current->next;
+    }
 }
 
 int dpl_size(dplist_t *list) {
 
-    //TODO: add your code here
-    return -1;
+    int count = 0;
+    dplist_node_t *current = list->head;
+
+    while (current != NULL) { // same as free fx, go through the list until the end
+        count++;
+        current = current->next; // Move to the next node
+    }
+
+    return count;
 }
 
+
 dplist_node_t *dpl_get_reference_at_index(dplist_t *list, int index) {
-    //int count = 0 ;
-    if (index <= 0) {
+    if (dpl_size(list) == 0 || list->head == NULL) {
+        return NULL;
+    } else {
+        dplist_node_t *current = list->head;
+        int count = 0;
 
-    } else if()
-    dplist_node_t *dummy = NULL;
+        if (index <= 0) {
+            return current;
+        }
+        while (current->next != NULL && count < index) {
+            current = current->next;
+            count++;
+        }
 
-    //TODO: add your code here
-    return dummy;
+        // If index is beyond the list length, return the last element
+        // avoiding too much if statements chaos
+        return current;
+    }
 }
 
 element_t dpl_get_element_at_index(dplist_t *list, int index) {
+    if (index <= 0) {
+        return list->head->element;
+    }
+    if (dpl_size(list) == 0 || list == NULL) {
+        return NULL;
+    }
+    if (index > dpl_size(list)) {
+        return dpl_get_reference_at_index(list, dpl_size(list))->element;
+    }
+    return dpl_get_reference_at_index(list, index)->element;
 
-    //TODO: add your code here
-    return '\e';
 }
 
 int dpl_get_index_of_element(dplist_t *list, element_t element) {
+    int index = 0;
+    dplist_node_t *current = list->head;
 
-    //TODO: add your code here
+    while (current != NULL) {
+        if (current->element == element) {
+            return index;
+        }
+        current = current->next;
+        index ++;
+    }
+
     return -1;
 }
+
 
 
 
