@@ -129,9 +129,36 @@ dplist_t *dpl_remove_at_index(dplist_t *list, int index) {
     if (list->head == NULL) {
         return NULL;
     }
+    // If index is 0 or negative, remove the first node
     if (index <= 0) {
         list->head = current->next;
+        if (list->head != NULL) {
+            list->head->prev = NULL;
+        }
+        free(current);
+        return list;
     }
+
+    //If index is in the length of the list or greater than
+    int counter = 0;
+    while (current->next != NULL && counter < index) {
+        current = current->next;
+        counter++;
+    }
+
+    //current is now set to the right node, now we'll "remove" the current node
+    //we can do this by changing the pointers of the node before and after the current node
+    //by linking the prev of the next node to the previous node
+    //and by linking the next of the previous node to the next node
+    //we can skip the current node from being linked in the list ("removing" current)
+    if (current->next == NULL && counter == index) {
+        current->prev->next = NULL;
+    } else {
+        current->prev->next = current->next;
+        current->next->prev = current->prev;
+    }
+    free(current);
+    return list;
 }
 
 int dpl_size(dplist_t *list) {
@@ -173,8 +200,8 @@ element_t dpl_get_element_at_index(dplist_t *list, int index) {
     if (index <= 0) {
         return list->head->element;
     }
-    if (dpl_size(list) == 0 || list == NULL) {
-        return NULL;
+    if (dpl_size(list) == 0 || list->head == NULL) {
+        return '\0';
     }
     if (index > dpl_size(list)) {
         return dpl_get_reference_at_index(list, dpl_size(list))->element;

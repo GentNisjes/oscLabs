@@ -15,8 +15,10 @@ int main(void)
 {
     dplist_t *numbers = NULL;
     numbers = dpl_create();
-
+    printf("%d\n",dpl_size(numbers));
     ck_assert_msg(numbers != NULL, "numbers = NULL, List not created");
+
+
     ck_assert_msg(dpl_size(numbers) == 0, "Numbers may not contain elements.");
 
     dpl_insert_at_index(numbers, 'a', 0);
