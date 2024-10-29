@@ -1,5 +1,5 @@
 /**
- * \author {AUTHOR}
+ * \author {AU THOR}
  */
 
 #ifndef _DPLIST_H_

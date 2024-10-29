@@ -5,6 +5,7 @@
  * main method that executes some test functions (without check framework)
  */
 
+#include <stdbool.h>
 #include <stdio.h>
 #include "dplist.h"
 
