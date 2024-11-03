@@ -173,20 +173,55 @@ dplist_t *dpl_remove_at_index(dplist_t *list, int index, bool free_element) {
 
 int dpl_size(dplist_t *list) {
 
-    //TODO: add your code here
+    //check edge cases
+    if (list==NULL){
+        return -1;
+    } else if (list->head == NULL) {
+        return 0;
+    }
+
+    //normal case
+    int count = 0;
+    dplist_node_t *current = list->head;
+
+    while (current != NULL) { // same as free fx, go through the list until the end
+        count++;
+        current = current->next; // Move to the next node
+    }
+
+    return count;
 
 }
 
 void *dpl_get_element_at_index(dplist_t *list, int index) {
-
-    //TODO: add your code here
-
+    // added check on node being null
+    dplist_node_t *node = dpl_get_reference_at_index(list, index);
+    if (node == NULL) {
+        return NULL;
+    }
+    return node->element;
 }
 
 int dpl_get_index_of_element(dplist_t *list, void *element) {
 
-    //TODO: add your code here
+    if (list==NULL || list->head == NULL)
+    {
+        return -1;
+    }
 
+    int index = 0;
+    dplist_node_t *current = list->head;
+
+    while (current != NULL) {
+        if (list->element_compare(current->element, element) == 0) {
+            return index;
+        }
+        if (current->next != NULL) {
+            current = current->next;
+            index ++;
+        }
+    }
+    return -1;
 }
 
 dplist_node_t *dpl_get_reference_at_index(dplist_t *list, int index) {
@@ -204,16 +239,19 @@ dplist_node_t *dpl_get_reference_at_index(dplist_t *list, int index) {
             current = current->next;
             count++;
         }
-
-        // If index is beyond the list length, return the last element
-        // avoiding too much if statements chaos (might regret this)
         return current;
     }
 }
 
 void *dpl_get_element_at_reference(dplist_t *list, dplist_node_t *reference) {
-
-    //TODO: add your code here
+    // If the list is empty, NULL is returned.
+    // If 'list' is NULL, NULL is returned.
+    // If 'reference' is NULL, NULL is returned.
+    // If 'reference' is not an existing reference in the list, NULL is returned.
+    if (list == NULL || list->head == NULL || reference == NULL || dpl_get_index_of_element(list, reference->element)) {
+        return NULL;
+    }
+    return reference->element;
 
 }
 
