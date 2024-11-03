@@ -239,6 +239,7 @@ dplist_node_t *dpl_get_reference_at_index(dplist_t *list, int index) {
             current = current->next;
             count++;
         }
+
         return current;
     }
 }

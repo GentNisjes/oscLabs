@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
+#include <string.h>
 
 typedef struct {
     int id;
@@ -66,6 +67,7 @@ void yourtest1(){
     dpl_free(&list, true);
     ck_assert_msg(list == NULL, "Failure: expected result to be NULL");
 
+    //______________________________________________________________________________________
 
     // Test adding node and removing it, in the boundaries of the list
     list = dpl_create(element_copy, element_free, element_compare);
@@ -140,6 +142,50 @@ void yourtest1(){
 
     // Clean up
     dpl_free(&list5, true);
+
+    //______________________________________________________________________________________
+
+    // Test the insertion of strings and check if the order was kept alright
+    dplist_t *list6 = dpl_create(element_copy, element_free, element_compare);
+    char *base_string = "Base";
+    char *mid_string = "Middle";
+    char *end_string = "End";
+
+    // Insert at the beginning
+    my_element_t *element7 = malloc(sizeof(my_element_t));
+    element7->id = 1;
+    element7->name = base_string;
+    dpl_insert_at_index(list6, element7, 0, true);
+    free(element7->name);
+    free(element7);
+
+    my_element_t *element8 = malloc(sizeof(my_element_t));
+    element8->id = 2;
+    element8->name = end_string;
+    dpl_insert_at_index(list6, element8, 1, true);
+    free(element8->name);
+    free(element8);
+
+    my_element_t *element9 = malloc(sizeof(my_element_t));
+    element9->id = 3;
+    element9->name = mid_string;
+    dpl_insert_at_index(list6, element9, 1, true);
+    free(element9->name);
+    free(element9);
+
+    // Verify the order
+    my_element_t *retrieved1 = dpl_get_element_at_index(list6, 0);
+    ck_assert_msg(strcmp(retrieved1->name, base_string) == 0, "Failure: The first element does not match 'Base'.");
+
+    my_element_t *retrieved2 = dpl_get_element_at_index(list6, 1);
+    ck_assert_msg(strcmp(retrieved2->name, mid_string) == 0, "Failure: The second element does not match 'Middle'.");
+
+    my_element_t *retrieved3 = dpl_get_element_at_index(list6, 2);
+    ck_assert_msg(strcmp(retrieved3->name, end_string) == 0, "Failure: The third element does not match 'End'.");
+
+    dpl_free(&list6, true);
+
+    //______________________________________________________________________________________
 
 }
 
