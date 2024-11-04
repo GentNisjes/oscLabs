@@ -38,6 +38,8 @@ void element_free(void ** element) {
     *element = NULL;
 }
 
+//test
+
 int element_compare(void * x, void * y) {
     return ((((my_element_t*)x)->id < ((my_element_t*)y)->id) ? -1 : (((my_element_t*)x)->id == ((my_element_t*)y)->id) ? 0 : 1);
 
