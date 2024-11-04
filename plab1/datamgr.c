@@ -2,65 +2,75 @@
 // Created by stijn on 11/4/24.
 //
 
+#include "datamgr.h"
+
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "config.h"
 #include "lib/dplist.h"
 
-struct dplist_node {
-    dplist_node_t *prev, *next;
-    void *element;
-};
+//callback functions, from milestone 1
+//adapted to this context
 
-struct dplist {
-    dplist_node_t *head;
+void * element_copy(void * element) {
+    my_element_t *copy = malloc(sizeof(my_element_t));
+    assert(copy != NULL); //check if correctly allocated by malloc
 
-    void *(*element_copy)(void *src_element);
+    //now that the copy is made we can take the components from the void type
+    //and put it in the new my_element_t type copy
+    copy->id = ((my_element_t *)element)->id;
+    copy->room_id = ((my_element_t *)element)->room_id;
+    copy->last_modified = ((my_element_t *)element)->last_modified;
+    copy->indexLastAddedInRA = ((my_element_t *)element)->indexLastAddedInRA;
+    for (int i=0; i<RUN_AVG_LENGTH; i++) {
+        //copy all the elements from the running_avg array
+        copy->running_avg[i] = ((my_element_t *)element)->running_avg[i];
+    }
 
-    void (*element_free)(void **element);
-
-    int (*element_compare)(void *x, void *y);
-};
-
-
-
-// //callback functions
-// void * element_copy(void * element) {
-//     element* copy = malloc(sizeof (element));
-//     char* new_name;
-//     asprintf(&new_name,"%s",((my_element_t*)element)->name); //asprintf requires _GNU_SOURCE
-//     assert(copy != NULL);
-//     copy->id = ((my_element_t*)element)->id;
-//     copy->name = new_name;
-//     return (void *) copy;
-// }
-//
-// void element_free(void ** element) {
-//     free((((my_element_t*)*element))->name);
-//     free(*element);
-//     *element = NULL;
-// }
-//
-// int element_compare(void * x, void * y) {
-//     return ((((my_element_t*)x)->id < ((my_element_t*)y)->id) ? -1 : (((my_element_t*)x)->id == ((my_element_t*)y)->id) ? 0 : 1);
-
-
-dplist_t *dpl_create(// callback functions
-        void *(*element_copy)(void *src_element),
-        void (*element_free)(void **element),
-        int (*element_compare)(void *x, void *y)
-) {
-    dplist_t *list;
-    list = malloc(sizeof(struct dplist));
-    list->head = NULL;
-    list->element_copy = element_copy;
-    list->element_free = element_free;
-    list->element_compare = element_compare;
-    return list;
+    //cast back to void, since that's the return type
+    return (void *)copy;
 }
 
+void element_free(void ** element) {
+    free(*element);
+    *element = NULL;
+}
+
+int element_compare(void * x, void * y) {
+    return ((((my_element_t*)x)->id < ((my_element_t*)y)->id) ? -1 : (((my_element_t*)x)->id == ((my_element_t*)y)->id) ? 0 : 1);
+
+    //---> quite hard to read, this is the written out version of the compare callback function
+    // my_element_t *element_x = (my_element_t *)x;
+    // my_element_t *element_y = (my_element_t *)y;
+    //
+    // if (element_x->id < element_y->id) {
+    //     return -1;
+    // } else if (element_x->id == element_y->id) {
+    //     return 0;
+    // } else {
+    //     return 1;
+    // }
+}
+
+//both room sensor map and sensor data are created bby the file creator script
+
+//ROOM SENSOR MAP - info
+
+//room_sensor.map = READABLE
+//just constant room info: room id and sensor id coupled with each other
+//<room ID><space><sensor ID><\n>
+//room ID and sensor ID are both positive 16-bit integers (uint16_t).
+
+//SENSOR DATA - info
+
+//sensor_data = NON READABLE - BINARY FILE
+//<sensor ID><temperature><timestamp>...
+
+
 void datamgr_parse_sensor_files(FILE *fp_sensor_map, FILE *fp_sensor_data) {
+
 
 }
 
