@@ -52,14 +52,16 @@ void dpl_free(dplist_t **list) {
 
     while(current != NULL) {
         dplist_node_t* next_node = current->next;
+        // if (current->element != NULL) {
+        //     free(current->element);
+        // }
+        // free(current->element);
         free(current);
         current = next_node;
     }
 
     free(*list);
     *list = NULL;
-
-    //Do extensive testing with valgrind. 
 
 }
 
@@ -78,8 +80,11 @@ dplist_t *dpl_insert_at_index(dplist_t *list, element_t element, int index) {
 
     list_node = malloc(sizeof(dplist_node_t));
 
-    list_node->element = element;
-    // pointer drawing breakpoint
+    list_node->element = malloc(sizeof(char)); // Allocate memory for one char, assign pointer to element
+    if (list_node->element == NULL) {
+        free(list_node);
+        return NULL;
+    }
 
     //when there's no node yet, so next and prev to null
     if (list->head == NULL) { // covers case 1

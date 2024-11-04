@@ -41,8 +41,6 @@ dplist_t* dpl_create() {
  * \param list a double pointer to the list
  */
 void dpl_free(dplist_t **list) {
-
-    //TODO: add your code here
     dplist_node_t* current = (*list)->head;
 
     if (current == NULL) {
@@ -52,6 +50,10 @@ void dpl_free(dplist_t **list) {
 
     while(current != NULL) {
         dplist_node_t* next_node = current->next;
+        if (current->element != NULL) {
+            free(current->element);
+        }
+        free(current->element);
         free(current);
         current = next_node;
     }
@@ -196,35 +198,9 @@ dplist_node_t *dpl_get_reference_at_index(dplist_t *list, int index) {
         // avoiding too much if statements chaos (might regret this)
         return current;
     }
-    // int count;
-    // dplist_node_t *dummy = list->head;
-    //
-    // if (index <= 0) {
-    //     return dummy;
-    // }
-    //
-    // for (count = 0; count < index; count++) {
-    //     if (dummy->next == NULL) {
-    //         break;
-    //     } else {
-    //         dummy = dummy->next;
-    //     }
-    // }
-    // return dummy;
 }
 
 element_t dpl_get_element_at_index(dplist_t *list, int index) {
-    // if (index <= 0 && list->head != NULL) {
-    //     return list->head->element;
-    // }
-    // if (dpl_size(list) == 0 || list->head == NULL) {
-    //     return '\0';
-    // }
-    // if (index > dpl_size(list)) {
-    //     return dpl_get_reference_at_index(list, index)->element; // second parameter either just index or dpl_size(list)
-    // }
-    // return dpl_get_reference_at_index(list, index)->element;
-
     // if statements from above are covered by the get reference function
     if (dpl_get_reference_at_index(list, index) == NULL) {
         return 0;

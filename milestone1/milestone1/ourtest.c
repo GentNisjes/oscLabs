@@ -178,8 +178,10 @@ void test3()
     node = (dplist_node_t *)dpl_get_reference_at_index(list, 99);
     el = (my_element_t *)dpl_get_element_at_reference(list, node);
 
+    // Failure: expected element at 99 is NULL
     ck_assert_msg(node != NULL, "Failure: expected node at 99 is NULL");
     ck_assert_msg(el != NULL, "Failure: expected element at 99 is NULL");
+
 
 
     ck_assert_msg(element_compare(el, (void *)content3) == 0, "Failure: expected element at 99 is not content3");
