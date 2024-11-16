@@ -14,11 +14,11 @@
 #endif
 
 #ifndef SET_MAX_TEMP
-#error SET_MAX_TEMP not set
+#define SET_MAX_TEMP = 50
 #endif
 
 #ifndef SET_MIN_TEMP
-#error SET_MIN_TEMP not set
+#define SET_MIN_TEMP = 0
 #endif
 
 /*
@@ -30,6 +30,31 @@
                         exit(EXIT_FAILURE);                         \
                       }                                             \
                     } while(0)
+
+//the main idea for the running_avg array is to create a circular buffer
+//with pointers to the specific temperatures in the temperatures map
+//we get this circularity by doing the following:
+//----------> every time a new temperature is added to the running avg
+//            we increment a counter, indexLastAddedInRA
+//
+//----------> If indexLastAddedInRA exceeds RUN_AVG_LENGTH - 1
+//            (i.e., goes beyond the end of the array),
+//            it wraps around to 0, ensuring that the array acts as a circular buffer.
+//
+//----------> This results in a circular updated array
+//            which is suitable for all lengths of data inputs
+
+typedef struct{
+   uint16_t id;                               //given variable, declared in the document
+   uint16_t room_id;                          //given variable, declared in the document
+   double running_avg[RUN_AVG_LENGTH];        //array of pointers pointing to the last x temperatures
+   int indexLastAddedInRA;                    //index of newly added last temperature reading
+   time_t last_modified;                      //given variable, declared in the document
+} my_element_t;
+
+void *element_copy(void *element);
+void element_free(void **element);
+int element_compare(void *x, void *y);
 
 /**
  *  This method holds the core functionality of your datamgr. It takes in 2 file pointers to the sensor files and parses them. 
