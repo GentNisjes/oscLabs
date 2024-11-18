@@ -24,6 +24,7 @@ int main() {
     }
 
     // Fork the process
+    // in other words: clone the parent and call it the child
     pid = fork();
     if (pid == -1) {
         perror("fork");
