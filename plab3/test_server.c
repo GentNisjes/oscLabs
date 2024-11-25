@@ -58,7 +58,7 @@ void *accept_connections(void *args) {
     int *conn_counter = thread_args->conn_counter;
     int max_conn = thread_args->max_conn;
 
-    while (*conn_counter < max_conn) {
+    while (*conn_counter <= max_conn) {
         tcpsock_t *client;
         //wait for a possible client
         if (tcp_wait_for_connection(server, &client) != TCP_NO_ERROR) {
