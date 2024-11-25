@@ -40,6 +40,9 @@ int main(int argc, char *argv[]) {
 
         //
         do {
+            //initialise the connection manager thread
+
+
             //READ out the data
             // read sensor ID
             bytes = sizeof(data.id);
