@@ -10,68 +10,11 @@
  * Implements a sequential test server (only one connection at the same time)
  */
 
-int main(int argc, char *argv[]) {
-    tcpsock_t *server,     //listening socket, which accepts incoming connections.
-              *client;     //temporarily represent each connected client socket during the handling process.
-    sensor_data_t data;
-    int bytes, result;     //track the number of bytes read or written over a socket.
-    int conn_counter = 0;  //counter for the amount of client connections being handled
-                           //see MAX_CONN
-    
-    if(argc < 3) {         //program expects 2 command line arguments
-    	printf("Please provide the right arguments: first the port, then the max nb of clients");
-    	return -1;
-    }
-    
-    int MAX_CONN = atoi(argv[2]);    //Extract the max amount of connections
-    int PORT = atoi(argv[1]);        //the port this program should listen for incoming data
-
-    printf("Test server is started\n");
-
-    //Initializes the server-side socket for listening on the specified PORT.
-    if (tcp_passive_open(&server, PORT) != TCP_NO_ERROR) exit(EXIT_FAILURE);
-
-    //main loop to handle the connections until MAX_CONN is reached
-    do {
-        //tcp_wait_for_connection blocks until a client connects to the server.
-        if (tcp_wait_for_connection(server, &client) != TCP_NO_ERROR) exit(EXIT_FAILURE);
-        printf("Incoming client connection\n");
-        conn_counter++;
-
-        //
-        do {
-            //initialise the connection manager thread
-
-
-            //READ out the data
-            // read sensor ID
-            bytes = sizeof(data.id);
-            result = tcp_receive(client, (void *) &data.id, &bytes);
-            // read temperature
-            bytes = sizeof(data.value);
-            result = tcp_receive(client, (void *) &data.value, &bytes);
-            // read timestamp
-            bytes = sizeof(data.ts);
-            result = tcp_receive(client, (void *) &data.ts, &bytes);
-
-            //check if the tcp connection completes and if bytes is not empty...
-            if ((result == TCP_NO_ERROR) && bytes) {
-                printf("sensor id = %" PRIu16 " - temperature = %g - timestamp = %ld\n", data.id, data.value,
-                       (long int) data.ts);
-            }
-
-        //continue while tcp connection is up and running
-        } while (result == TCP_NO_ERROR);
-        if (result == TCP_CONNECTION_CLOSED)
-            printf("Peer has closed connection\n");
-        else
-            printf("Error occured on connection to peer\n");
-        tcp_close(&client);
-    } while (conn_counter < MAX_CONN);
-    if (tcp_close(&server) != TCP_NO_ERROR) exit(EXIT_FAILURE);
-    printf("Test server is shutting down\n");
-    return 0;
-}
+typedef struct accept_thread_args {
+    tcpsock_t *server_socket; // Pointer to the server socket
+    int *conn_counter;        // Pointer to the connection counter
+    int max_conn;             // Maximum number of connections
+} accept_thread_args_t;
 
 void *handle_client(void *client_ptr) {
     tcpsock_t *client = (tcpsock_t *)client_ptr;
@@ -109,29 +52,92 @@ void *handle_client(void *client_ptr) {
     return NULL;
 }
 
-void *accept_connections(void *server_ptr) {
-    tcpsock_t *server = (tcpsock_t *)server_ptr;
-    tcpsock_t *client;
+void *accept_connections(void *args) {
+    struct accept_thread_args *thread_args = (struct accept_thread_args *)args;
+    tcpsock_t *server = thread_args->server_socket;
+    int *conn_counter = thread_args->conn_counter;
+    int max_conn = thread_args->max_conn;
 
-    while (1) {
-        if (tcp_wait_for_connection(server, &client) == TCP_NO_ERROR) {
-            printf("New client connected\n");
-
-            // Spawn a new thread to handle the client
-            pthread_t client_thread;
-            //important to give th address of the function, so &handle_client,
-            //and declare handle_client() before accept connections
-            if (pthread_create(&client_thread, NULL, &handle_client, (void *)client) != 0) {
-                perror("Failed to create client thread");
-                tcp_close(&client);
-            } else {
-                // Detach the thread so it cleans up resources on its own
-                pthread_detach(client_thread);
-            }
+    while (*conn_counter < max_conn) {
+        tcpsock_t *client;
+        //wait for a possible client
+        if (tcp_wait_for_connection(server, &client) != TCP_NO_ERROR) {
+            fprintf(stderr, "Error while waiting for connection.\n");
+            continue;
         }
+
+        printf("Incoming client connection\n");
+        (*conn_counter)++;
+
+        // Spawn a new thread to handle the client
+        pthread_t client_thread;
+        if (pthread_create(&client_thread, NULL, handle_client, (void *)client) != 0) {
+            fprintf(stderr, "Failed to create client thread.\n");
+            tcp_close(&client); // Close the client socket if thread creation fails
+            (*conn_counter)--;  // Decrement counter since client couldn't be handled
+            continue;
+        }
+
+        // Detach thread to let it clean up its resources after finishing
+        pthread_detach(client_thread);
     }
+
     return NULL;
 }
+
+
+
+int main(int argc, char *argv[]) {
+    tcpsock_t *server,     //listening socket, which accepts incoming connections.
+              *client;     //temporarily represent each connected client socket during the handling process.
+    sensor_data_t data;
+    int bytes, result;     //track the number of bytes read or written over a socket.
+    int conn_counter = 0;  //counter for the amount of client connections being handled
+                           //see MAX_CONN
+    pthread_t accept_thread;
+    
+    if(argc < 3) {         //program expects 2 command line arguments
+    	printf("Please provide the right arguments: first the port, then the max nb of clients");
+    	return -1;
+    }
+    
+    int MAX_CONN = atoi(argv[2]);    //Extract the max amount of connections
+    int PORT = atoi(argv[1]);        //the port this program should listen for incoming data
+
+    printf("Test server is started\n");
+
+    // Initialize the server-side socket for listening on the specified PORT
+    if (tcp_passive_open(&server, PORT) != TCP_NO_ERROR) {
+        fprintf(stderr, "Failed to initialize the server socket.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // Shared data for the accept thread
+    accept_thread_args_t thread_args = {server, &conn_counter, MAX_CONN};
+
+
+    // Start the thread to accept incoming connections
+    if (pthread_create(&accept_thread, NULL, &accept_connections, (void *)&thread_args) != 0) {
+        fprintf(stderr, "Failed to create accept thread.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // Wait for the accept thread to complete (i.e., all connections processed)
+    pthread_join(accept_thread, NULL);
+
+    // Close the server socket after all clients are handled
+    if (tcp_close(&server) != TCP_NO_ERROR) {
+        fprintf(stderr, "Failed to close server socket.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    printf("Test server is shutting down\n");
+    return 0;
+}
+
+
+
+
 
 
 
