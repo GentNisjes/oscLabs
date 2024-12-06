@@ -22,6 +22,7 @@ struct sbuffer {
     sbuffer_node_t *tail;       /**< a pointer to the last node in the buffer */
 };
 
+// initialize mutex
 int sbuffer_init(sbuffer_t **buffer) {
     *buffer = malloc(sizeof(sbuffer_t));
     if (*buffer == NULL) return SBUFFER_FAILURE;
@@ -30,6 +31,7 @@ int sbuffer_init(sbuffer_t **buffer) {
     return SBUFFER_SUCCESS;
 }
 
+// mutex lock and unlock
 int sbuffer_free(sbuffer_t **buffer) {
     sbuffer_node_t *dummy;
     if ((buffer == NULL) || (*buffer == NULL)) {
