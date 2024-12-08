@@ -17,6 +17,7 @@ pthread_mutex_t csv_mutex; // make an extra mutex for the readers
 FILE* csv;
 
 int main() {
+    pthread_mutex_init(&csv_mutex, NULL);
     // Allocate memory for the buffer pointer and initialize it
     // done through the sbuffer_init function
     sbuffer_t* myBuffer;
@@ -32,6 +33,7 @@ int main() {
         sbuffer_free(&myBuffer);
         return EXIT_FAILURE;
     }
+    printf("file successfully opened\n");
 
     // Create reader threads
     // and check both thread creations, if set up correctly
@@ -68,6 +70,7 @@ int main() {
            fread(&sensor_data.ts, sizeof(sensor_data.ts), 1, fpsd) == 1) {
 
         sbuffer_insert(myBuffer, &sensor_data);
+        printf("%d, %lf, %ld\n", sensor_data.id, sensor_data.value, sensor_data.ts);
         usleep(10000); // 10 milliseconds delay
     }
 
@@ -84,6 +87,9 @@ int main() {
     fclose(fpsd);
     fclose(csv);
     sbuffer_free(&myBuffer);
+
+    pthread_mutex_destroy(&csv_mutex);
+
 
     return EXIT_SUCCESS;
 }
@@ -111,3 +117,10 @@ void* reader(void* buffer) {
 
     return NULL;
 }
+
+
+
+
+
+
+
