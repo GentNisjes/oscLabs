@@ -84,13 +84,17 @@ int sbuffer_remove(sbuffer_t *buffer, sensor_data_t *data) {
     }
     *data = buffer->head->data;
     dummy = buffer->head;
-    if (buffer->head == buffer->tail) // buffer has only one node
-    {
+
+    if (buffer->head->data.id == 0) { // End marker detected
+        // Don't remove end marker to ensure other threads see it
+        pthread_mutex_unlock(&mutexBuff);
+        return SBUFFER_SUCCESS;
+    } else if (buffer->head == buffer->tail) { // Only one node in buffer
         buffer->head = buffer->tail = NULL;
-    } else  // buffer has many nodes empty
-    {
+    } else { // More than one node in buffer
         buffer->head = buffer->head->next;
     }
+
     free(dummy);
     pthread_mutex_unlock(&mutexBuff);
     return SBUFFER_SUCCESS;
