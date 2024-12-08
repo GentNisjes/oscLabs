@@ -12,15 +12,13 @@
 #include "main.h"
 
 // Global mutex for writing to the CSV file
-pthread_mutex_t csv_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t csv_mutex; // make an extra mutex for the readers
 
 FILE* csv;
 
-// Function prototypes
-void* reader(void* buffer);
-
 int main() {
     // Allocate memory for the buffer pointer and initialize it
+    // done through the sbuffer_init function
     sbuffer_t* myBuffer;
     if (sbuffer_init(&myBuffer) != SBUFFER_SUCCESS) {
         fprintf(stderr, "Failed to initialize buffer.\n");

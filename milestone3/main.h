@@ -5,4 +5,9 @@
 #ifndef MAIN_H
 #define MAIN_H
 
+#include "sbuffer.h"
+
+int main();
+void *reader(void* buffer);
+
 #endif //MAIN_H
