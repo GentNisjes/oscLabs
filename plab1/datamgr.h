@@ -40,6 +40,7 @@
 //----------> If indexLastAddedInRA exceeds RUN_AVG_LENGTH - 1
 //            (i.e., goes beyond the end of the array),
 //            it wraps around to 0, ensuring that the array acts as a circular buffer.
+//            (so the counter is then used to insert at an index = counter)
 //
 //----------> This results in a circular updated array
 //            which is suitable for all lengths of data inputs
