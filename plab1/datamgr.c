@@ -56,6 +56,8 @@ int element_compare(void * x, void * y) {
     // }
 }
 
+// -------------------------------------------------------------------------------------------------
+
 //both room sensor map and sensor data are created bby the file creator script
 
 //ROOM SENSOR MAP - info
@@ -70,9 +72,63 @@ int element_compare(void * x, void * y) {
 //sensor_data = NON READABLE - BINARY FILE
 //<sensor ID><temperature><timestamp>...
 
+dplist_t *list;
 
 void datamgr_parse_sensor_files(FILE *fp_sensor_map, FILE *fp_sensor_data) {
+    // Part 1: make dplist from sensor_map
 
+    list = dpl_create(element_copy, element_free, element_compare);
+    my_element_t temp_element;
+    temp_element.indexLastAddedInRA = 0;
+    temp_element.last_modified = 0;
+    for (int i=0; i<RUN_AVG_LENGTH; i++) {
+        temp_element.running_avg[i] = -555; // error checking number (check uninitialized values)
+    }
+
+    int index_dpl = 0;
+    char line[12]; // 2x uint16 (max. 5 digits) + space + string terminator = 12 characters
+    while (fgets(line, sizeof(line), fp_sensor_map)) {
+        if (sscanf(line, "%hd %hd", &temp_element.room_id, &temp_element.id) == 2) {
+            dpl_insert_at_index(list, &temp_element, index_dpl, true);
+        }
+        index_dpl++;
+    }
+
+    // Part 2: fill dplist with data from sensor_data
+
+    sensor_data_t sensor_data; //defined in config.h
+    // index_dpl gets reused, how fun
+
+    while (!feof(fp_sensor_data)) {
+        // Read the content as a sensor_data_t
+        fread(&sensor_data.id, 2, 1, fp_sensor_data);
+        fread(&sensor_data.value, 8, 1, fp_sensor_data);
+        fread(&sensor_data.ts, 8, 1, fp_sensor_data);
+
+        //replace id with 0 at end of file and break out of the while loop
+        if (feof(fp_sensor_data)) {
+            sensor_data.id = 0;
+            break; // quit reading loop
+        }
+
+        // add values from binary file to the dplist
+        index_dpl = dpl_get_index_of_element(list, &sensor_data);
+
+        if (index_dpl == -1) {
+            // values not in .map file should be dropped, with a log message saying so
+            fprintf(stderr, "Sensor with that ID not in list\n");
+        } else {
+            //temp_node = dpl_get_reference_at_index(list, index_dpl);
+            my_element_t *temp_node = (my_element_t *) dpl_get_element_at_index(list, index_dpl);
+            temp_node->last_modified = sensor_data.ts;
+            if (++temp_node->indexLastAddedInRA >= RUN_AVG_LENGTH) {
+                temp_node->indexLastAddedInRA = 0;
+            }
+            temp_node->running_avg[temp_node->indexLastAddedInRA] = sensor_data.value;
+
+
+        }
+    }
 
 
 
