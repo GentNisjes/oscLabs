@@ -135,21 +135,99 @@ void datamgr_parse_sensor_files(FILE *fp_sensor_map, FILE *fp_sensor_data) {
 }
 
 void datamgr_free() {
-
+    dpl_free(&list, true);
+    free(list);
 }
 
 uint16_t datamgr_get_room_id(sensor_id_t sensor_id) {
+    int index_dpl;
+    uint16_t temp_room = 0;
 
+    // temporary extra node to store the ID in a my_element_t type to use it in the index_of_element method
+    my_element_t* extra_node = malloc(sizeof(my_element_t)); // it's only a vessel to move the sensor id
+    extra_node->id = sensor_id;
+
+    // use the dpl_get_index_of_element from the dplist project
+    index_dpl = dpl_get_index_of_element(list, extra_node);
+
+    // check if "get index of element" was successful
+    if (index_dpl == -1) {
+        fprintf(stderr, "Sensor with that ID not in list\n");
+    } else {
+        my_element_t* temp_node = (my_element_t *) dpl_get_element_at_index(list, index_dpl);
+        temp_room = temp_node->room_id;
+    }
+
+    // cleanup used extra node for reuse and memory sanity reasons
+    free(extra_node);
+    extra_node = NULL;
+
+    return temp_room;
 }
 
 sensor_value_t datamgr_get_avg(sensor_id_t sensor_id) {
+    double average = 0;
+    my_element_t search_node;
+    search_node.id = sensor_id;
 
+    // Find the index of the sensor in the list
+    int index_dpl = dpl_get_index_of_element(list, &search_node);
+    if (index_dpl == -1) {
+        fprintf(stderr, "Sensor with ID %d not in list\n", sensor_id); // "Sensor with that ID not in list\n"
+    }
+
+    // Retrieve the actual node from the list
+    my_element_t* temp_node = (my_element_t *) dpl_get_element_at_index(list, index_dpl);
+
+    // Calculate the running average of valid values
+    double sum = 0;
+    int valid_count = 0;
+    for (int i = 0; i < RUN_AVG_LENGTH; i++) {
+        if (temp_node->running_avg[i] > -275) { // Valid data check
+            sum += temp_node->running_avg[i];
+            valid_count++;
+        }
+    }
+
+    if (valid_count == 0) {
+        fprintf(stderr, "No valid data for sensor ID %d\n", sensor_id);
+    }
+
+    average = sum / valid_count;
+
+    // Display the average temperature
+    printf("Temp: %lf\n", average);
+    if (average > SET_MAX_TEMP) {
+        printf("It's too warm\n");
+    } else if (average < SET_MIN_TEMP) {
+        printf("It's too cold\n");
+    }
+
+    return average;
 }
 
-time_t datamgr_get_last_modified(sensor_id_t sensor_id) {
 
+time_t datamgr_get_last_modified(sensor_id_t sensor_id) {
+    int index_dpl;
+    time_t temp_time = 0;
+
+    my_element_t* extra_node = malloc(sizeof(my_element_t));
+    extra_node->id = sensor_id;
+
+    index_dpl = dpl_get_index_of_element(list, extra_node);
+
+    if (index_dpl == -1) {
+        fprintf(stderr, "Sensor with that ID not in list\n");
+    } else {
+        my_element_t* temp_node = (my_element_t *) dpl_get_element_at_index(list, index_dpl);
+        temp_time = temp_node->last_modified;
+    }
+
+    free(extra_node);
+    extra_node = NULL;
+    return temp_time;
 }
 
 int datamgr_get_total_sensors() {
-
+    return dpl_size(list);
 }
