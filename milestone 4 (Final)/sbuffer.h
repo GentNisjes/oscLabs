@@ -37,7 +37,7 @@ int sbuffer_free(sbuffer_t **buffer);
  * \param data a pointer to pre-allocated sensor_data_t space, the data will be copied into this structure. No new memory is allocated for 'data' in this function.
  * \return SBUFFER_SUCCESS on success and SBUFFER_FAILURE if an error occurred
  */
-int sbuffer_remove(sbuffer_t *buffer, sensor_data_t *data);
+int sbuffer_remove(sbuffer_t *buffer, sensor_data_t *data, int stage);
 
 /**
  * Inserts the sensor data in 'data' at the end of 'buffer' (at the 'tail')
@@ -45,7 +45,9 @@ int sbuffer_remove(sbuffer_t *buffer, sensor_data_t *data);
  * \param data a pointer to sensor_data_t data, that will be copied into the buffer
  * \return SBUFFER_SUCCESS on success and SBUFFER_FAILURE if an error occured
 */
-int sbuffer_insert(sbuffer_t *buffer, sensor_data_t *data);
+int sbuffer_insert(sbuffer_t *buffer, sensor_data_t *data, int stage);
+
+int sbuffer_read(sbuffer_t *buffer, sensor_data_t *data, int stage);
 
 //int sbuffer_cond(int amount);
 
