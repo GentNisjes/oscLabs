@@ -3,17 +3,13 @@
 #include <pthread.h>
 #include "connmgr.h"    // Your connection manager header file
 #include "sbuffer.h"    // Your sbuffer header file
-//#include "storagemgr.h" // Storage manager header file (assumed)
+#include "sensor_db.h" // Storage manager header file (assumed)
 
 typedef struct {
     int port;
     int max_conn;
     sbuffer_t *sbuffer;
 } connmgr_args_t;
-
-typedef struct {
-    sbuffer_t *sbuffer;
-} storagemgr_args_t;
 
 // Function to start the connection manager
 void *start_connmgr(void *args) {
@@ -25,7 +21,7 @@ void *start_connmgr(void *args) {
 // Function to start the storage manager
 void *start_storagemgr(void *args) {
     storagemgr_args_t *sm_args = (storagemgr_args_t *)args;
-    //storagemgr(sm_args->sbuffer); // Assuming storagemgr takes the shared buffer as argument
+    storagemgr(sm_args->buffer); // Assuming storagemgr takes the shared buffer as argument
     return NULL;
 }
 
