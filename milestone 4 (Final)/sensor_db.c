@@ -12,12 +12,12 @@
 
 // Function to log process events (as a placeholder for your actual logging function)
 void write_to_log_process(const char* message) {
-    printf("%s\n", message);
+    fprintf(stderr, "%s\n", message);
 }
 
 int storagemgr(void* storage_args) {
     storagemgr_args_t* args = (storagemgr_args_t*)storage_args;
-    //char logmsg[LOG_MESSAGE_LENGTH];
+    char logmsg[LOG_MESSAGE_LENGTH];
 
     // Open CSV file for writing
     FILE* csv = fopen(CSV_NAME, "w"); // "w" mode to create/overwrite the file
@@ -25,7 +25,7 @@ int storagemgr(void* storage_args) {
         write_to_log_process("Error opening " CSV_NAME ", shutting down storage manager");
         return 1;  // Error opening the file
     }
-    //write_to_log_process("A new " CSV_NAME " file has been created.");
+    write_to_log_process("A new " CSV_NAME " file has been created.");
 
     // Sensor data structure for storing incoming data
     sensor_data_t received_data;
@@ -40,8 +40,8 @@ int storagemgr(void* storage_args) {
                 fprintf(csv, "%d, %lf, %ld\n", received_data.id, received_data.value, received_data.ts);
 
                 // Log the successful insertion
-//                sprintf(logmsg, "Data insertion from sensor %u succeeded.", received_data.id);
-//                write_to_log_process(logmsg);
+                sprintf(logmsg, "Data insertion from sensor %u succeeded.", received_data.id);
+                write_to_log_process(logmsg);
             } else {
                 // Exit if the data is invalid or indicates no more data
                 break;

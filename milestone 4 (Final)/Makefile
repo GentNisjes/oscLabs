@@ -4,17 +4,19 @@
 ## when executing make, compile all exe's
 #all: sensor_gateway sensor_node file_creator
 #
+
+
 # When trying to compile one of the executables, first look for its .c files
 # Then check if the libraries are in the lib folder
-sensor_gateway : main.c connmgr.c datamgr.c sensor_db.c sbuffer.c  lib/libtcpsock.so #lib/libdplist.so
-	@echo "$(TITLE_COLOR)\n***** COMPILING sensor_gateway *****$(NO_COLOR)"
-	gcc -c main.c      -Wall -std=c11 -Werror -DSET_MIN_TEMP=10 -DSET_MAX_TEMP=20 -DTIMEOUT=5 -o main.o      -fdiagnostics-color=auto
-	gcc -c connmgr.c   -Wall -std=c11 -Werror -DSET_MIN_TEMP=10 -DSET_MAX_TEMP=20 -DTIMEOUT=5 -o connmgr.o   -fdiagnostics-color=auto
-	gcc -c datamgr.c   -Wall -std=c11 -Werror -DSET_MIN_TEMP=10 -DSET_MAX_TEMP=20 -DTIMEOUT=5 -o datamgr.o   -fdiagnostics-color=auto
-	gcc -c sensor_db.c -Wall -std=c11 -Werror -DSET_MIN_TEMP=10 -DSET_MAX_TEMP=20 -DTIMEOUT=5 -o sensor_db.o -fdiagnostics-color=auto
-	gcc -c sbuffer.c   -Wall -std=c11 -Werror -DSET_MIN_TEMP=10 -DSET_MAX_TEMP=20 -DTIMEOUT=5 -o sbuffer.o   -fdiagnostics-color=auto
-	@echo "$(TITLE_COLOR)\n***** LINKING sensor_gateway *****$(NO_COLOR)"
-	gcc main.o connmgr.o datamgr.o sensor_db.o sbuffer.o -ltcpsock -lpthread -o sensor_gateway -Wall -L./lib -Wl,-rpath=./lib -fdiagnostics-color=auto
+#sensor_gateway : main.c connmgr.c datamgr.c sensor_db.c sbuffer.c  lib/libtcpsock.so #lib/libdplist.so
+#	@echo "$(TITLE_COLOR)\n***** COMPILING sensor_gateway *****$(NO_COLOR)"
+#	gcc -c main.c      -Wall -std=c11 -Werror -DSET_MIN_TEMP=10 -DSET_MAX_TEMP=20 -DTIMEOUT=5 -o main.o      -fdiagnostics-color=auto
+#	gcc -c connmgr.c   -Wall -std=c11 -Werror -DSET_MIN_TEMP=10 -DSET_MAX_TEMP=20 -DTIMEOUT=5 -o connmgr.o   -fdiagnostics-color=auto
+#	gcc -c datamgr.c   -Wall -std=c11 -Werror -DSET_MIN_TEMP=10 -DSET_MAX_TEMP=20 -DTIMEOUT=5 -o datamgr.o   -fdiagnostics-color=auto
+#	gcc -c sensor_db.c -Wall -std=c11 -Werror -DSET_MIN_TEMP=10 -DSET_MAX_TEMP=20 -DTIMEOUT=5 -o sensor_db.o -fdiagnostics-color=auto
+#	gcc -c sbuffer.c   -Wall -std=c11 -Werror -DSET_MIN_TEMP=10 -DSET_MAX_TEMP=20 -DTIMEOUT=5 -o sbuffer.o   -fdiagnostics-color=auto
+#	@echo "$(TITLE_COLOR)\n***** LINKING sensor_gateway *****$(NO_COLOR)"
+#	gcc main.o connmgr.o datamgr.o sensor_db.o sbuffer.o -ltcpsock -lpthread -o sensor_gateway -Wall -L./lib -Wl,-rpath=./lib -fdiagnostics-color=auto
 
 ##target for a quick build of your source code.
 #sensor_gateway_quick :
@@ -28,12 +30,14 @@ sensor_gateway : main.c connmgr.c datamgr.c sensor_db.c sbuffer.c  lib/libtcpsoc
 #	@echo "$(TITLE_COLOR)\n***** COMPILE & LINKING file_creator *****$(NO_COLOR)"
 #	gcc file_creator.c -o file_creator -Wall -fdiagnostics-color=auto
 #
+
+
 #test client
-sensor_node : sensor_node.c lib/libtcpsock.so
-	@echo "$(TITLE_COLOR)\n***** COMPILING sensor_node *****$(NO_COLOR)"
-	gcc -c sensor_node.c -Wall -std=c11 -Werror -o sensor_node.o -fdiagnostics-color=auto
-	@echo "$(TITLE_COLOR)\n***** LINKING sensor_node *****$(NO_COLOR)"
-	gcc sensor_node.o -ltcpsock -o sensor_node -Wall -L./lib -Wl,-rpath=./lib -fdiagnostics-color=auto
+#sensor_node : sensor_node.c lib/libtcpsock.so
+#	@echo "$(TITLE_COLOR)\n***** COMPILING sensor_node *****$(NO_COLOR)"
+#	gcc -c sensor_node.c -Wall -std=c11 -Werror -o sensor_node.o -fdiagnostics-color=auto
+#	@echo "$(TITLE_COLOR)\n***** LINKING sensor_node *****$(NO_COLOR)"
+#	gcc sensor_node.o -ltcpsock -o sensor_node -Wall -L./lib -Wl,-rpath=./lib -fdiagnostics-color=auto
 
 ## If you only want to compile one of the libs, this target will match (e.g. make liblist)
 #libdplist : lib/libdplist.so
@@ -60,26 +64,28 @@ sensor_node : sensor_node.c lib/libtcpsock.so
 #clean-all: clean
 #	rm -rf lib/*.so
 #
-run : sensor_gateway sensor_node
-	@echo "Add your own implementation here..."
+
+
+#run : sensor_gateway sensor_node
+#	@echo "Add your own implementation here..."
 
 #zip:
 #	zip lab_final.zip main.c connmgr.c connmgr.h datamgr.c datamgr.h sbuffer.c sbuffer.h sensor_db.c sensor_db.h config.h lib/dplist.c lib/dplist.h lib/tcpsock.c lib/tcpsock.h Makefile
 
-#mainconn: main.c lib/tcpsock.c lib/tcpsock.h sensor_db.c sensor_db.h connmgr.c connmgr.h config.h sbuffer.c sbuffer.h
-#	gcc -g main.c lib/tcpsock.c lib/tcpsock.h sensor_db.c sensor_db.h connmgr.c connmgr.h config.h sbuffer.c sbuffer.h -o test_server
-#
-#sensor_node: sensor_node.c lib/tcpsock.c
-#	gcc -g sensor_node.c lib/tcpsock.c -o sensor_node
-#
-#runserver: mainconn
-#	./test_server 5678 2
-#
-#runclient1: sensor_node
-#	./sensor_node 1 2 127.0.0.1 5678
-#
-#runclient2: sensor_node
-#	./sensor_node 2 5 127.0.0.1 5678
-#
-#runclient3: sensor_node
-#	./sensor_node 3 5 127.0.0.1 5678
+mainconn: main.c lib/tcpsock.c lib/tcpsock.h sensor_db.c sensor_db.h connmgr.c connmgr.h config.h sbuffer.c sbuffer.h
+	gcc -g main.c lib/tcpsock.c lib/tcpsock.h sensor_db.c sensor_db.h connmgr.c connmgr.h config.h sbuffer.c sbuffer.h -o test_server
+
+sensor_node: sensor_node.c lib/tcpsock.c
+	gcc -g sensor_node.c lib/tcpsock.c -o sensor_node
+
+runserver: mainconn
+	./test_server 5678 2
+
+runclient1: sensor_node
+	./sensor_node 1 2 127.0.0.1 5678
+
+runclient2: sensor_node
+	./sensor_node 2 5 127.0.0.1 5678
+
+runclient3: sensor_node
+	./sensor_node 3 5 127.0.0.1 5678
