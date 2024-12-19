@@ -48,10 +48,14 @@ void *handle_client(void *args) {
         // Insert data into the shared buffer
         if (sbuffer_insert(buffer, &data, 0) != SBUFFER_SUCCESS) {
             fprintf(stderr, "Failed to insert data into buffer.\n");
-            break;
+        } else {
+            printf("Data inserted into buffer - Sensor ID: %" PRIu16 ", Temp: %g, Timestamp: %ld\n", data.id, data.value, (long)data.ts);
+            //fflush(stderr);
         }
 
+
         printf("Received data - Sensor ID: %" PRIu16 ", Temp: %g, Timestamp: %ld\n", data.id, data.value, (long)data.ts);
+        //fflush(stderr);
     }
 
     // Clean up

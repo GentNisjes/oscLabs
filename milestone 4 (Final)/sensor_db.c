@@ -32,7 +32,8 @@ int storagemgr(void* storage_args) {
 
     while (1) {
         // Get data from the buffer
-        if (sbuffer_remove(args->buffer, &received_data, 2) == 0) {  // Timeout set to 2 seconds
+        if (sbuffer_remove(args->buffer, &received_data, 2) == 0) {
+            printf("Data removed from buffer - Sensor ID: %d, Temp: %lf, Timestamp: %ld\n", received_data.id, received_data.value, received_data.ts);
 
             // Check if the received data is valid (id != 0)
             if (received_data.id != 0) {
@@ -49,6 +50,7 @@ int storagemgr(void* storage_args) {
         } else {
             // Log a message if buffer is empty or no data available within the timeout period
             write_to_log_process("Buffer empty or no data available within timeout.");
+            printf("Buffer empty or no data available within timeout. \n");
         }
     }
 

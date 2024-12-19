@@ -45,12 +45,15 @@ int main(int argc, char *argv[]) {
 
     // Create the connection manager thread
     pthread_t connmgr_thread;
+
     connmgr_args_t cm_args = { port, max_conn, sbuffer };
     if (pthread_create(&connmgr_thread, NULL, start_connmgr, &cm_args) != 0) {
         fprintf(stderr, "Failed to create connection manager thread.\n");
         sbuffer_free(&sbuffer);  // Clean up in case of failure
         exit(EXIT_FAILURE);
     }
+
+    sleep(5);
 
     // Create the storage manager thread
     pthread_t storagemgr_thread;

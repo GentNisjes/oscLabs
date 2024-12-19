@@ -33,7 +33,7 @@ struct sbuffer {
 };
 
 // initialize mutex
-// initialise stateBuff to be     used for wait and signal function calls
+// initialize stateBuff to be     used for wait and signal function calls
 int sbuffer_init(sbuffer_t **buffer) {
   	pthread_mutex_init(&mutexBuff, NULL);
     pthread_cond_init(&stateBuff, NULL);
@@ -72,8 +72,9 @@ int sbuffer_free(sbuffer_t **buffer) {
     pthread_mutex_unlock(&mutexBuff);
 
     // Destroy the mutex and condition variable
-    pthread_mutex_destroy(&mutexBuff);
+
     pthread_cond_destroy(&stateBuff);
+    pthread_mutex_destroy(&mutexBuff);
     return SBUFFER_SUCCESS;
 }
 
@@ -143,6 +144,7 @@ int sbuffer_read(sbuffer_t *buffer, sensor_data_t *data, int state) {
         // do nothing
     }
     pthread_mutex_unlock(&mutexBuff);
+    //pthread_cond_broadcast(&stateBuff);
     pthread_cond_signal(&stateBuff);
     return SBUFFER_SUCCESS;
 }
@@ -173,9 +175,13 @@ int sbuffer_insert(sbuffer_t *buffer, sensor_data_t *data, int state) {
     }
 
     // Signal that new data is available
-    pthread_cond_signal(&stateBuff);
+
+
+
 
     pthread_mutex_unlock(&mutexBuff);
+    pthread_cond_signal(&stateBuff);
+    // pthread_cond_broadcast(&stateBuff);
     return SBUFFER_SUCCESS;
 }
 
