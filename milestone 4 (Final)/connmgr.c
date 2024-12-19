@@ -53,7 +53,6 @@ void *handle_client(void *args) {
             //fflush(stderr);
         }
 
-
         printf("Received data - Sensor ID: %" PRIu16 ", Temp: %g, Timestamp: %ld\n", data.id, data.value, (long)data.ts);
         //fflush(stderr);
     }

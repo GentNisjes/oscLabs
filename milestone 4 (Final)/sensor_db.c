@@ -8,7 +8,7 @@
 #include <pthread.h>
 #include "config.h"
 #include "sbuffer.h"
-#include "sensor_db.h"  // Your sensor data structures and logging functions
+#include "sensor_db.h"
 
 // Function to log process events (as a placeholder for your actual logging function)
 void write_to_log_process(const char* message) {
@@ -39,6 +39,7 @@ int storagemgr(void* storage_args) {
             if (received_data.id != 0) {
                 // Write the data to the CSV file
                 fprintf(csv, "%d, %lf, %ld\n", received_data.id, received_data.value, received_data.ts);
+                fflush(csv);
 
                 // Log the successful insertion
                 sprintf(logmsg, "Data insertion from sensor %u succeeded.", received_data.id);

@@ -97,14 +97,21 @@ int sbuffer_remove(sbuffer_t *buffer, sensor_data_t *data, int state) {
     }
     //use cond variable stateBuff for waiting
     while (buffer->head == NULL || buffer->head->state != state-1) {
+        //printf("the head state: %i, the current state: %i", buffer->head->state, state);
+        printf("waiting 4ever\n");
+        if (buffer->head == NULL) {
+            printf("Remove: The head is NULL, the current state: %i\n", state);
+        } else {
+            printf("Remove: The head state: %i, the current state: %i\n", buffer->head->state, state);
+        }
         pthread_cond_wait(&stateBuff, &mutexBuff);
     }
     *data = buffer->head->data;
     dummy = buffer->head;
 
     if (buffer->head->data.id == 0) { // End marker detected
-        pthread_mutex_unlock(&mutexBuff);
-        return SBUFFER_SUCCESS;
+        // pthread_mutex_unlock(&mutexBuff);
+        // return SBUFFER_SUCCESS;
 
     } else if (buffer->head == buffer->tail) { // Only one node in buffer
         buffer->head = buffer->tail = NULL;
@@ -125,7 +132,14 @@ int sbuffer_read(sbuffer_t *buffer, sensor_data_t *data, int state) {
         pthread_mutex_unlock(&mutexBuff);
         return SBUFFER_FAILURE;
     }
-    while (buffer->head == NULL || buffer->tail->state != state-1) {
+    while (buffer->head == NULL || buffer->tail == NULL || buffer->tail->state != state-1){
+        printf("waiting 4ever\n");
+        if (buffer->head == NULL) {
+            printf("Read: The head is NULL, the current state: %i\n", state);
+        } else {
+            printf("Read: The head state: %i, the current state: %i\n", buffer->head->state, state);
+        }
+
         // block if head is null or all nodes are at the wrong stage (if final node is at the wrong stage, all of them are)
         pthread_cond_wait(&stateFilled, &mutexBuff);
     }
@@ -150,6 +164,7 @@ int sbuffer_read(sbuffer_t *buffer, sensor_data_t *data, int state) {
 }
 
 //writer threads will use this function
+//used by the connmgr, set state back to zero
 int sbuffer_insert(sbuffer_t *buffer, sensor_data_t *data, int state) {
     sbuffer_node_t *dummy;
     pthread_mutex_lock(&mutexBuff);
@@ -163,7 +178,7 @@ int sbuffer_insert(sbuffer_t *buffer, sensor_data_t *data, int state) {
         return SBUFFER_FAILURE;
     }
     dummy->data = *data;
-    dummy->state = state;
+    dummy->state = state;   //state = 0
     dummy->next = NULL;
     if (buffer->tail == NULL) // buffer empty (buffer->head should also be NULL
     {
@@ -173,21 +188,20 @@ int sbuffer_insert(sbuffer_t *buffer, sensor_data_t *data, int state) {
         buffer->tail->next = dummy;
         buffer->tail = buffer->tail->next;
     }
-
-    // Signal that new data is available
-
-
-
-
-    pthread_mutex_unlock(&mutexBuff);
     pthread_cond_signal(&stateBuff);
+    pthread_mutex_unlock(&mutexBuff);
+
     // pthread_cond_broadcast(&stateBuff);
     return SBUFFER_SUCCESS;
 }
 
-//int sbuffer_cond(int amount) {
-//    for (int i = 0; i<amount; i++) {
-//        pthread_cond_signal(&stateBuff);
-//    }
-//    return SBUFFER_SUCCESS;
-//}
+int sbuffer_cond(int amount) {
+    for (int i = 0; i<amount; i++) {
+        pthread_cond_signal(&stateBuff);
+    }
+    return SBUFFER_SUCCESS;
+}
+
+
+
+
