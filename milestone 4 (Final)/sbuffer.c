@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "sbuffer.h"
+#include <time.h>
+
 
 
 pthread_mutex_t mutexBuff;
@@ -98,11 +100,11 @@ int sbuffer_remove(sbuffer_t *buffer, sensor_data_t *data, int state) {
     //use cond variable stateBuff for waiting
     while (buffer->head == NULL || buffer->head->state != state-1) {
         //printf("the head state: %i, the current state: %i", buffer->head->state, state);
-        printf("waiting 4ever\n");
+        printf("[%s]              SBuff REMOVE: waiting 4ever\n", get_timestamp());
         if (buffer->head == NULL) {
-            printf("Remove: The head is NULL, the current state: %i\n", state);
+            printf("[%s]              SBuff REMOVE: The head is NULL, the current state: %i\n", get_timestamp(), state);
         } else {
-            printf("Remove: The head state: %i, the current state: %i\n", buffer->head->state, state);
+            printf("[%s]              SBuff REMOVE: The head state: %i, the current state: %i\n", get_timestamp(), buffer->head->state, state);
         }
         pthread_cond_wait(&stateBuff, &mutexBuff);
     }
@@ -132,12 +134,12 @@ int sbuffer_read(sbuffer_t *buffer, sensor_data_t *data, int state) {
         pthread_mutex_unlock(&mutexBuff);
         return SBUFFER_FAILURE;
     }
-    while (buffer->head == NULL || buffer->tail == NULL || buffer->tail->state != state-1){
-        printf("waiting 4ever\n");
+    while (buffer->head == NULL || buffer->tail->state != state-1){ // buffer->tail == NULL ||
+        printf("[%s]              SBuff READ: waiting 4ever\n", get_timestamp());
         if (buffer->head == NULL) {
-            printf("Read: The head is NULL, the current state: %i\n", state);
+            printf("[%s]              SBuff READ: The head is NULL, the current state: %i\n", get_timestamp(), state);
         } else {
-            printf("Read: The head state: %i, the current state: %i\n", buffer->head->state, state);
+            printf("[%s]              SBuff READ: The head state: %i, the current state: %i\n", get_timestamp(), buffer->head->state, state);
         }
 
         // block if head is null or all nodes are at the wrong stage (if final node is at the wrong stage, all of them are)
@@ -183,15 +185,17 @@ int sbuffer_insert(sbuffer_t *buffer, sensor_data_t *data, int state) {
     if (buffer->tail == NULL) // buffer empty (buffer->head should also be NULL
     {
         buffer->head = buffer->tail = dummy;
+        printf("[%s]              SBuff INSERT: buff empty next = dummy with state %i\n", get_timestamp(), buffer->head->state);
     } else // buffer not empty
     {
         buffer->tail->next = dummy;
         buffer->tail = buffer->tail->next;
+        printf("[%s]              SBuff INSERT: buff not empty next = dummy with state %i\n", get_timestamp(), buffer->head->state);
     }
-    pthread_cond_signal(&stateBuff);
-    pthread_mutex_unlock(&mutexBuff);
 
-    // pthread_cond_broadcast(&stateBuff);
+    pthread_mutex_unlock(&mutexBuff);
+    pthread_cond_signal(&stateBuff);
+    //pthread_cond_broadcast(&stateBuff);
     return SBUFFER_SUCCESS;
 }
 
@@ -201,6 +205,16 @@ int sbuffer_cond(int amount) {
     }
     return SBUFFER_SUCCESS;
 }
+
+// Function to get the current time as a string
+const char* get_timestamp() {
+    static char timestamp[20];
+    time_t now = time(NULL);
+    struct tm *tm_info = localtime(&now);
+    strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", tm_info);
+    return timestamp;
+}
+
 
 
 

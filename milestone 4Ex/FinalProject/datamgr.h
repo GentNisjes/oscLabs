@@ -12,11 +12,11 @@
 #endif
 
 #ifndef SET_MAX_TEMP
-#error SET_MAX_TEMP not set
+#define SET_MAX_TEMP 50
 #endif
 
 #ifndef SET_MIN_TEMP
-#error SET_MIN_TEMP not set
+#define SET_MIN_TEMP 0
 #endif
 
 #define SENSOR_MAP  "room_sensor.map"

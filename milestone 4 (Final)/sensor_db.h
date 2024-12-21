@@ -22,7 +22,7 @@ typedef struct {
 int storagemgr(void* storage_args);
 
 // Function to log process information (you can implement or replace this as needed)
-void write_to_log_process(const char* message);
+// void write_to_log_process(const char* message);
 
 #endif // SENSOR_DB_H
 

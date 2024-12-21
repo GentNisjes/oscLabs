@@ -20,4 +20,26 @@ typedef struct {
     sensor_ts_t ts;
 } sensor_data_t;
 
+/**
+ * writes a log message to the pipe, to be processed by log_pipe_to_file
+ * \param msg the log message
+ */
+int write_to_log_process(char *msg);
+
+/**
+ * Reads the first data in the pipe and writes it to a log file
+ */
+int log_pipe_to_file();
+
+/**
+ * Opens pipe and forks process, unction depends on parent or child process calling it
+ * \return 0 on succes and 1 if an error occured
+ */
+int create_log_process();
+
+/**
+ * Ends the log process, function depends on parent or child process calling it
+ */
+int end_log_process();
+
 #endif /* _CONFIG_H_ */

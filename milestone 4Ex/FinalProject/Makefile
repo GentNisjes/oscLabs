@@ -18,12 +18,12 @@ sensor_gateway : main.c connmgr.c datamgr.c sensor_db.c sbuffer.c lib/libdplist.
 
 #target for a quick build of your source code.
 sensor_gateway_quick :
-	gcc -w -o sensor_gateway main.c connmgr.c datamgr.c sensor_db.c sbuffer.c lib/dplist.c lib/tcpsock.c -DSET_MIN_TEMP=10 -DSET_MAX_TEMP=20 -DTIMEOUT=5 -lpthread 
-		
-sensor_gateway_debug :
-	gcc -g -w -o sensor_gateway main.c connmgr.c datamgr.c sensor_db.c sbuffer.c lib/dplist.c lib/tcpsock.c -DSET_MIN_TEMP=10 -DSET_MAX_TEMP=20 -DTIMEOUT=5 -lpthread 
+	gcc -w -o sensor_gateway main.c connmgr.c datamgr.c sensor_db.c sbuffer.c lib/dplist.c lib/tcpsock.c -DSET_MIN_TEMP=10 -DSET_MAX_TEMP=20 -DTIMEOUT=5 -lpthread
 
-#file_creator program to generate a room map	
+sensor_gateway_debug :
+	gcc -g -w -o sensor_gateway main.c connmgr.c datamgr.c sensor_db.c sbuffer.c lib/dplist.c lib/tcpsock.c -DSET_MIN_TEMP=10 -DSET_MAX_TEMP=20 -DTIMEOUT=5 -lpthread
+
+#file_creator program to generate a room map
 file_creator : file_creator.c
 	@echo "$(TITLE_COLOR)\n***** COMPILE & LINKING file_creator *****$(NO_COLOR)"
 	gcc file_creator.c -o file_creator -Wall -fdiagnostics-color=auto
@@ -65,3 +65,21 @@ run : sensor_gateway sensor_node
 
 zip:
 	zip lab_final.zip main.c connmgr.c connmgr.h datamgr.c datamgr.h sbuffer.c sbuffer.h sensor_db.c sensor_db.h config.h lib/dplist.c lib/dplist.h lib/tcpsock.c lib/tcpsock.h
+
+#mainconn: main.c lib/tcpsock.c lib/tcpsock.h sensor_db.c sensor_db.h connmgr.c connmgr.h config.h sbuffer.c sbuffer.h datamgr.c datamgr.h lib/dplist.c lib/dplist.h data.csv
+#	gcc -g main.c lib/tcpsock.c lib/tcpsock.h sensor_db.c sensor_db.h connmgr.c connmgr.h config.h sbuffer.c sbuffer.h datamgr.c datamgr.h data.csv lib/dplist.c lib/dplist.h -o test_server
+#
+#sensor_node: sensor_node.c lib/tcpsock.c
+#	gcc -g sensor_node.c lib/tcpsock.c -o sensor_node
+#
+#runserver: mainconn
+#	./test_server 5678 2
+#
+#runclient1: sensor_node
+#	./sensor_node 1 2 127.0.0.1 5678
+#
+#runclient2: sensor_node
+#	./sensor_node 2 5 127.0.0.1 5678
+#
+#runclient3: sensor_node
+#	./sensor_node 3 5 127.0.0.1 5678

@@ -11,9 +11,9 @@
 #include "sensor_db.h"
 
 // Function to log process events (as a placeholder for your actual logging function)
-void write_to_log_process(const char* message) {
-    fprintf(stderr, "%s\n", message);
-}
+// void write_to_log_process(const char* message) {
+//     fprintf(stderr, "%s\n", message);
+// }
 
 int storagemgr(void* storage_args) {
     storagemgr_args_t* args = (storagemgr_args_t*)storage_args;
@@ -33,7 +33,7 @@ int storagemgr(void* storage_args) {
     while (1) {
         // Get data from the buffer
         if (sbuffer_remove(args->buffer, &received_data, 2) == 0) {
-            printf("Data removed from buffer - Sensor ID: %d, Temp: %lf, Timestamp: %ld\n", received_data.id, received_data.value, received_data.ts);
+            printf("[%s]              Data MGR: Data removed from buffer - Sensor ID: %d, Temp: %lf, Timestamp: %ld\n", get_timestamp(), received_data.id, received_data.value, received_data.ts);
 
             // Check if the received data is valid (id != 0)
             if (received_data.id != 0) {
@@ -42,7 +42,7 @@ int storagemgr(void* storage_args) {
                 fflush(csv);
 
                 // Log the successful insertion
-                sprintf(logmsg, "Data insertion from sensor %u succeeded.", received_data.id);
+                sprintf(logmsg, "Data MGR: Data insertion from sensor %u succeeded.", received_data.id);
                 write_to_log_process(logmsg);
             } else {
                 // Exit if the data is invalid or indicates no more data
@@ -50,8 +50,8 @@ int storagemgr(void* storage_args) {
             }
         } else {
             // Log a message if buffer is empty or no data available within the timeout period
-            write_to_log_process("Buffer empty or no data available within timeout.");
-            printf("Buffer empty or no data available within timeout. \n");
+            write_to_log_process("Data MGR: Buffer empty or no data available within timeout.");
+            printf("[%s]              Data MGR: Buffer empty or no data available within timeout. \n", get_timestamp());
         }
     }
 
