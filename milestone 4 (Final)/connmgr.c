@@ -29,13 +29,23 @@ void *handle_client(void *args) {
     sbuffer_t *buffer = client_args->buffer;
     int *conn_counter = client_args->conn_counter;
     sensor_data_t data;
+    char logmsg[LOG_MESSAGE_LENGTH];
     int bytes, result;
+    int id = 0; //initial value of the id, when first reading a new connection sensor we dont know it
+                //yet so set it to zero, for the log message we check on this value too.
 
     while (1) {
         // Receive sensor data
         bytes = sizeof(data.id);
         result = tcp_receive(client, (void *)&data.id, &bytes);
         if (result != TCP_NO_ERROR || bytes == 0) break;
+
+        // Log the first connection of the sensor node
+        if (id == 0) { // Only on the first loop
+            id = data.id;
+            snprintf(logmsg, sizeof(logmsg), "Sensor node %u has opened a new connection", id);
+            write_to_log_process(logmsg);
+        }
 
         bytes = sizeof(data.value);
         result = tcp_receive(client, (void *)&data.value, &bytes);
@@ -57,15 +67,26 @@ void *handle_client(void *args) {
                      data.id, data.value, (long)data.ts);
 
             write_to_log_process(log1);
-
         }
-
-        //printf("[%s]              Conn MGR: Received data - Sensor ID: %" PRIu16 ", Temp: %g, Timestamp: %ld\n", get_timestamp(), data.id, data.value, (long)data.ts);
-        //fflush(stderr);
     }
 
+    // write to log
+    if (result == TCP_CONNECTION_CLOSED) {
+        sprintf(logmsg, "Sensor node %u has closed the connection", id);
+    }
+    // else if (result == TCP_CONNECTION_TIMEOUT) {
+    //     sprintf(logmsg, "Sensor node %u has timed out, connection closed", id);
+    // }
+    else {
+        sprintf(logmsg, "Error connecting to sensor node %u, connection closed", id);
+    }
+    write_to_log_process(logmsg);
+
     // Clean up
-    tcp_close(&client);
+    if (tcp_close(&client) != TCP_NO_ERROR) {
+        sprintf(logmsg, "Connection with sensor node %u not closed correctly", id);
+        write_to_log_process(logmsg);
+    }
     free(client_args);
     (*conn_counter)--;
 
@@ -140,11 +161,11 @@ void connmgr(int port, int max_conn, sbuffer_t *buffer) {
         write_to_log_process("Failed to initialize the server socket.\n");
         return;
     }
+    write_to_log_process("Server started");
 
     accept_thread_args_t thread_args = {server, &conn_counter, max_conn, buffer};
 
     if (pthread_create(&accept_thread, NULL, accept_connections, (void *)&thread_args) != 0) {
-        fprintf(stderr, "Failed to create accept thread.\n");
         write_to_log_process("Failed to create accept thread.\n");
         tcp_close(&server);
         return;
@@ -153,12 +174,10 @@ void connmgr(int port, int max_conn, sbuffer_t *buffer) {
     pthread_join(accept_thread, NULL);
 
     if (tcp_close(&server) != TCP_NO_ERROR) {
-        fprintf(stderr, "Failed to close server socket.\n");
         write_to_log_process("Failed to close server socket.\n");
     }
 
-    printf("Connection manager shutting down\n");
-    write_to_log_process("Connection manager shutting down\n");
+    write_to_log_process("All connections closed - connection manager finished");
 }
 
 // #include <stdio.h>
