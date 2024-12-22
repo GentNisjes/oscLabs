@@ -64,7 +64,7 @@ run : sensor_gateway sensor_node
 	@echo "Add your own implementation here..."
 
 zip:
-	zip lab_final.zip main.c connmgr.c connmgr.h datamgr.c datamgr.h sbuffer.c sbuffer.h sensor_db.c sensor_db.h config.h lib/dplist.c lib/dplist.h lib/tcpsock.c lib/tcpsock.h
+	zip lab_final2.zip main.c connmgr.c connmgr.h datamgr.c datamgr.h sbuffer.c sbuffer.h sensor_db.c sensor_db.h config.h lib/dplist.c lib/dplist.h lib/tcpsock.c lib/tcpsock.h
 
 #mainconn: main.c lib/tcpsock.c lib/tcpsock.h sensor_db.c sensor_db.h connmgr.c connmgr.h config.h sbuffer.c sbuffer.h datamgr.c datamgr.h lib/dplist.c lib/dplist.h data.csv
 #	gcc -g main.c lib/tcpsock.c lib/tcpsock.h sensor_db.c sensor_db.h connmgr.c connmgr.h config.h sbuffer.c sbuffer.h datamgr.c datamgr.h data.csv lib/dplist.c lib/dplist.h -o test_server

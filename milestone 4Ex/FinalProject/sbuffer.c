@@ -64,7 +64,7 @@ int sbuffer_free(sbuffer_t **buffer) {
 }
 
 int sbuffer_remove(sbuffer_t *buffer, sensor_data_t *data, int stage) {
-    char logmsg[LOG_MESSAGE_LENGTH];
+    //char logmsg[LOG_MESSAGE_LENGTH];
     sbuffer_node_t *dummy;
     pthread_mutex_lock(&buffermutex);
     if (buffer == NULL) {
@@ -101,7 +101,7 @@ int sbuffer_remove(sbuffer_t *buffer, sensor_data_t *data, int stage) {
 }
 
 int sbuffer_read(sbuffer_t *buffer, sensor_data_t *data, int stage) {
-    char logmsg[LOG_MESSAGE_LENGTH];
+    //char logmsg[LOG_MESSAGE_LENGTH];
     sbuffer_node_t *dummy;
     pthread_mutex_lock(&buffermutex);
     if (buffer == NULL) {
@@ -140,7 +140,7 @@ int sbuffer_read(sbuffer_t *buffer, sensor_data_t *data, int stage) {
 }
 
 int sbuffer_insert(sbuffer_t *buffer, sensor_data_t *data, int stage) {
-    char logmsg[LOG_MESSAGE_LENGTH];
+    //char logmsg[LOG_MESSAGE_LENGTH];
     sbuffer_node_t *dummy;
     pthread_mutex_lock(&buffermutex);
     if (buffer == NULL) {
