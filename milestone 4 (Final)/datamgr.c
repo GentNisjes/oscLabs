@@ -33,7 +33,7 @@ int datamgr(void* data_args) {
     while (1) {
         // get data from buffer
         if (sbuffer_read(args->buffer, &received_data, 1) == 0) {
-            printf("[%s]              Data MGR: read done correctly", get_timestamp());
+            write_to_log_process("Data MGR: read done correctly");
             if (received_data.id != 0) {
                 printf("%lu: %d, %lf, %ld\n", pthread_self(), received_data.id, received_data.value, received_data.ts);
 
@@ -56,12 +56,11 @@ int datamgr(void* data_args) {
                     datamgr_get_avg(temp_node);
                 }
             } else { // end of buffer
-                printf("[%s]              Data MGR: received id is zero", get_timestamp());
+                write_to_log_process("Data MGR: received id is zero");
                 datamgr_free();
                 break;
             }
         } else {
-            printf("[%s]              Data MGR: read went wrong\n", get_timestamp());
             write_to_log_process("Data MGR: read went wrong\n");
         }
     }

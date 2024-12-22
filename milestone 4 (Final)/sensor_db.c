@@ -33,8 +33,8 @@ int storagemgr(void* storage_args) {
     while (1) {
         // Get data from the buffer
         if (sbuffer_remove(args->buffer, &received_data, 2) == 0) {
-            printf("[%s]              Data MGR: Data removed from buffer - Sensor ID: %d, Temp: %lf, Timestamp: %ld\n", get_timestamp(), received_data.id, received_data.value, received_data.ts);
-
+            sprintf(logmsg, "Data MGR: Data removed from buffer - Sensor ID: %d, Temp: %lf, Timestamp: %ld\n", received_data.id, received_data.value, received_data.ts);
+            write_to_log_process(logmsg);
             // Check if the received data is valid (id != 0)
             if (received_data.id != 0) {
                 // Write the data to the CSV file
@@ -51,7 +51,7 @@ int storagemgr(void* storage_args) {
         } else {
             // Log a message if buffer is empty or no data available within the timeout period
             //write_to_log_process("Storage MGR: Buffer empty or no data available within timeout.");
-            printf("[%s]              Storage MGR: Buffer empty or no data available within timeout. \n", get_timestamp());
+            write_to_log_process("Storage MGR: Buffer empty or no data available within timeout. \n");
         }
     }
 

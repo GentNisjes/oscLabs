@@ -118,7 +118,7 @@ int main(int argc, char *argv[]) {
 
     // Create the data manager thread
     pthread_t datamgr_thread;
-    if (pthread_create(&datamgr_thread, NULL, start_datamgr, data_args) != 0) {
+    if (pthread_create(&datamgr_thread, NULL, (void*)datamgr, data_args) != 0) {
         fprintf(stderr, "Failed to create data manager thread.\n");
         sbuffer_free(shared_data);
         pthread_cancel(connmgr_thread);
@@ -132,7 +132,7 @@ int main(int argc, char *argv[]) {
 
     // Create the storage manager thread
     pthread_t storagemgr_thread;
-    if (pthread_create(&storagemgr_thread, NULL, start_storagemgr, storage_args) != 0) {
+    if (pthread_create(&storagemgr_thread, NULL, (void*)storagemgr, storage_args) != 0) {
         fprintf(stderr, "Failed to create storage manager thread.\n");
         sbuffer_free(shared_data);
         pthread_cancel(connmgr_thread);

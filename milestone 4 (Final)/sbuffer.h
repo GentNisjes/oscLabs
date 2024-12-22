@@ -51,7 +51,7 @@ int sbuffer_read(sbuffer_t *buffer, sensor_data_t *data, int stage);
 
 int sbuffer_cond(int amount);
 
-const char* get_timestamp();
+//const char* get_timestamp();
 
 #endif  //_SBUFFER_H_
 
