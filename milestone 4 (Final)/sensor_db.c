@@ -42,7 +42,7 @@ int storagemgr(void* storage_args) {
                 fflush(csv);
 
                 // Log the successful insertion
-                sprintf(logmsg, "Data MGR: Data insertion from sensor %u succeeded.", received_data.id);
+                sprintf(logmsg, "Storage MGR: Data insertion from sensor %u succeeded.", received_data.id);
                 write_to_log_process(logmsg);
             } else {
                 // Exit if the data is invalid or indicates no more data
@@ -50,8 +50,8 @@ int storagemgr(void* storage_args) {
             }
         } else {
             // Log a message if buffer is empty or no data available within the timeout period
-            write_to_log_process("Data MGR: Buffer empty or no data available within timeout.");
-            printf("[%s]              Data MGR: Buffer empty or no data available within timeout. \n", get_timestamp());
+            //write_to_log_process("Storage MGR: Buffer empty or no data available within timeout.");
+            printf("[%s]              Storage MGR: Buffer empty or no data available within timeout. \n", get_timestamp());
         }
     }
 

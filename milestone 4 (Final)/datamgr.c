@@ -32,9 +32,6 @@ int datamgr(void* data_args) {
 
     while (1) {
         // get data from buffer
-        printf("[%s]              Data MGR: gonna sleep a bit\n", get_timestamp());
-        sleep(2);
-        printf("[%s]              Data MGR: back awake\n", get_timestamp());
         if (sbuffer_read(args->buffer, &received_data, 1) == 0) {
             printf("[%s]              Data MGR: read done correctly", get_timestamp());
             if (received_data.id != 0) {
@@ -65,6 +62,7 @@ int datamgr(void* data_args) {
             }
         } else {
             printf("[%s]              Data MGR: read went wrong\n", get_timestamp());
+            write_to_log_process("Data MGR: read went wrong\n");
         }
     }
     return 0;

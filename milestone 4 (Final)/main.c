@@ -18,17 +18,16 @@ FILE* log_file;
 typedef struct {
     int port;
     int max_conn;
-    sbuffer_t *sbuffer;
+    sbuffer_t **sbuffer;
 } connmgr_args_t;
 
 // Function to start the connection manager
 void *start_connmgr(void *args) {
     connmgr_args_t *cm_args = (connmgr_args_t *)args;
-    connmgr(cm_args->port, cm_args->max_conn, cm_args->sbuffer);
+    connmgr(cm_args->port, cm_args->max_conn, *(cm_args->sbuffer));
     return NULL;
 }
 
-// Function to start the storage manager
 void *start_storagemgr(void *args) {
     storagemgr_args_t *sm_args = (storagemgr_args_t *)args;
     storagemgr(sm_args->buffer); // Assuming storagemgr takes the shared buffer as argument
@@ -70,73 +69,102 @@ int main(int argc, char *argv[]) {
     printf("Starting connection manager on port %d, allowing up to %d connections...\n", port, max_conn);
 
     // Initialize the shared buffer
-    sbuffer_t *sbuffer;
-    if (sbuffer_init(&sbuffer) != SBUFFER_SUCCESS) {
+    sbuffer_t **shared_data = malloc(sizeof(sbuffer_t *));
+    if (shared_data == NULL) {
+        write_to_log_process("Error allocating memory to buffer, shutting down");
+        return 1;
+    }
+
+    if (sbuffer_init(shared_data) != SBUFFER_SUCCESS) {
         fprintf(stderr, "Failed to initialize shared buffer.\n");
+        free(shared_data);
         exit(EXIT_FAILURE);
     }
 
-    // pass arguments to manager threads
-    connmgr_args_t *conn_args = malloc(sizeof *conn_args);
-    datamgr_args_t *data_args= malloc(sizeof *data_args);
-    storagemgr_args_t *storage_args= malloc(sizeof *storage_args);
+    // Pass arguments to manager threads
+    connmgr_args_t *conn_args = malloc(sizeof(connmgr_args_t));
+    datamgr_args_t *data_args = malloc(sizeof(datamgr_args_t));
+    storagemgr_args_t *storage_args = malloc(sizeof(storagemgr_args_t));
+
+    if (!conn_args || !data_args || !storage_args) {
+        fprintf(stderr, "Failed to allocate memory for arguments.\n");
+        sbuffer_free(shared_data);
+        free(*shared_data);
+        free(shared_data);
+        exit(EXIT_FAILURE);
+    }
+
+    // Initialize the arguments for each manager
+    conn_args->port = port;
+    conn_args->max_conn = max_conn;
+    conn_args->sbuffer = shared_data;
+
+    data_args->buffer = *shared_data;
+
+    storage_args->buffer = *shared_data;
 
     // Create the connection manager thread
     pthread_t connmgr_thread;
+    if (pthread_create(&connmgr_thread, NULL, start_connmgr, conn_args) != 0) {
+        fprintf(stderr, "Failed to create connection manager thread.\n");
+        sbuffer_free(shared_data);
+        free(*shared_data);
+        free(shared_data);
+        free(conn_args);
+        free(data_args);
+        free(storage_args);
+        exit(EXIT_FAILURE);
+    }
+
+    // Create the data manager thread
     pthread_t datamgr_thread;
-    pthread_t storagemgr_thread;
-
-    connmgr_args_t cm_args = { port, max_conn, sbuffer };
-    if (pthread_create(&connmgr_thread, NULL, start_connmgr, &cm_args) != 0) {
-        fprintf(stderr, "Failed to create connection manager thread.\n");
-        sbuffer_free(&sbuffer);  // Clean up in case of failure
+    if (pthread_create(&datamgr_thread, NULL, start_datamgr, data_args) != 0) {
+        fprintf(stderr, "Failed to create data manager thread.\n");
+        sbuffer_free(shared_data);
+        pthread_cancel(connmgr_thread);
+        free(*shared_data);
+        free(shared_data);
+        free(conn_args);
+        free(data_args);
+        free(storage_args);
         exit(EXIT_FAILURE);
     }
-
-    datamgr_args_t dm_args = { sbuffer };
-    if (pthread_create(&datamgr_thread, NULL, start_datamgr, &dm_args) != 0) {
-        fprintf(stderr, "Failed to create connection manager thread.\n");
-        sbuffer_free(&sbuffer);  // Clean up in case of failure
-        exit(EXIT_FAILURE);
-    }
-
-    //sleep(1);
-    printf("test________________________________");
 
     // Create the storage manager thread
-
-    storagemgr_args_t sm_args = { sbuffer };
-    if (pthread_create(&storagemgr_thread, NULL, start_storagemgr, &sm_args) != 0) {
-        printf("Failed to create storage manager thread.\n");
+    pthread_t storagemgr_thread;
+    if (pthread_create(&storagemgr_thread, NULL, start_storagemgr, storage_args) != 0) {
         fprintf(stderr, "Failed to create storage manager thread.\n");
-        sbuffer_free(&sbuffer);  // Clean up in case of failure
-        pthread_cancel(connmgr_thread); // Cancel the connection manager thread if storage manager fails to start
+        sbuffer_free(shared_data);
+        pthread_cancel(connmgr_thread);
+        pthread_cancel(datamgr_thread);
+        free(*shared_data);
+        free(shared_data);
+        free(conn_args);
+        free(data_args);
+        free(storage_args);
         exit(EXIT_FAILURE);
     }
-    printf("created storage manager thread.\n");
 
-    // Wait for both threads to finish
+    // Wait for the threads to finish
     pthread_join(connmgr_thread, NULL);
     pthread_join(datamgr_thread, NULL);
     pthread_join(storagemgr_thread, NULL);
 
-    pthread_join(connmgr_thread, NULL);
-    free(cm_args);
-    conn_args = NULL;
-    pthread_join(datamgr_id, NULL);
+    // Free dynamically allocated memory
+    free(conn_args);
     free(data_args);
-    data_args = NULL;
-    pthread_join(storagemgr_id, NULL);
     free(storage_args);
-    storage_args = NULL;
 
-    // Cleanup: Free the shared buffer after both threads finish
-    if (sbuffer_free(&sbuffer) != SBUFFER_SUCCESS) {
+    // Cleanup the shared buffer
+    if (sbuffer_free(shared_data) != SBUFFER_SUCCESS) {
         write_to_log_process("Failed to free shared buffer.\n");
+        free(*shared_data); // Free the actual buffer
+        free(shared_data);  // Free the double pointer
         exit(EXIT_FAILURE);
     }
-    free(shared_data);
-    shared_data = NULL;
+
+    free(*shared_data); // Free the actual buffer
+    free(shared_data);  // Free the double pointer
 
     // end logger thread
     write_to_log_process("Shutting down - log process closed");
@@ -216,3 +244,13 @@ int end_log_process() {
     }
     return 0;
 }
+
+// int sbuffer_free(sbuffer_t **shared_data) {
+//     if (*shared_data == NULL) {
+//         return SBUFFER_FAILURE;
+//     }
+//     // Free internal fields of `sbuffer_t` if needed
+//     free(*shared_data);
+//     *shared_data = NULL;
+//     return SBUFFER_SUCCESS;
+// }

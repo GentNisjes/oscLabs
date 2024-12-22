@@ -49,11 +49,18 @@
 //         if (sbuffer_insert(buffer, &data, 0) != SBUFFER_SUCCESS) {
 //             fprintf(stderr, "Failed to insert data into buffer.\n");
 //         } else {
-//             printf("[%s]              Conn MGR: Data inserted into buffer - Sensor ID: %" PRIu16 ", Temp: %g, Timestamp: %ld\n", get_timestamp(), data.id, data.value, (long)data.ts);
+//             //printf("[%s]              Conn MGR: Data inserted into buffer - Sensor ID: %" PRIu16 ", Temp: %g, Timestamp: %ld\n", get_timestamp(), data.id, data.value, (long)data.ts);
 //             //fflush(stderr);
+//             char log1[256];  // Adjust the size as needed
+//             snprintf(log1, sizeof(log1),
+//                      "Conn MGR: Received data - Sensor ID: %" PRIu16 ", Temp: %g, Timestamp: %ld\n",
+//                      data.id, data.value, (long)data.ts);
+//
+//             write_to_log_process(log1);
+//
 //         }
 //
-//         printf("[%s]              Conn MGR: Received data - Sensor ID: %" PRIu16 ", Temp: %g, Timestamp: %ld\n", get_timestamp(), data.id, data.value, (long)data.ts);
+//         //printf("[%s]              Conn MGR: Received data - Sensor ID: %" PRIu16 ", Temp: %g, Timestamp: %ld\n", get_timestamp(), data.id, data.value, (long)data.ts);
 //         //fflush(stderr);
 //     }
 //
@@ -81,12 +88,14 @@
 //         }
 //
 //         printf("Incoming client connection\n");
+//         write_to_log_process("incoming client connection\n");
 //         (*conn_counter)++;
 //
 //         // Prepare arguments for the client thread
 //         client_thread_args_t *client_args = malloc(sizeof(client_thread_args_t));
 //         if (client_args == NULL) {
 //             fprintf(stderr, "Failed to allocate memory for client arguments.\n");
+//             write_to_log_process("Failed to allocate memory for client arguments.\n");
 //             tcp_close(&client);
 //             (*conn_counter)--;
 //             continue;
@@ -99,6 +108,7 @@
 //         pthread_t client_thread;
 //         if (pthread_create(&client_thread, NULL, handle_client, (void *)client_args) != 0) {
 //             fprintf(stderr, "Failed to create client thread.\n");
+//             write_to_log_process("Failed to create client thread.\n");
 //             tcp_close(&client);
 //             free(client_args);
 //             (*conn_counter)--;
@@ -118,9 +128,16 @@
 //     pthread_t accept_thread;
 //
 //     printf("Conn MGR: Starting connection manager on port %d\n", port);
+//     char log2[256];  // Adjust the size as needed
+//     snprintf(log2, sizeof(log2),
+//              "Conn MGR: Starting connection manager on port %d\n",
+//              port);
+//
+//     write_to_log_process(log2);
 //
 //     if (tcp_passive_open(&server, port) != TCP_NO_ERROR) {
 //         fprintf(stderr, "Failed to initialize the server socket.\n");
+//         write_to_log_process("Failed to initialize the server socket.\n");
 //         return;
 //     }
 //
@@ -128,6 +145,7 @@
 //
 //     if (pthread_create(&accept_thread, NULL, accept_connections, (void *)&thread_args) != 0) {
 //         fprintf(stderr, "Failed to create accept thread.\n");
+//         write_to_log_process("Failed to create accept thread.\n");
 //         tcp_close(&server);
 //         return;
 //     }
@@ -136,9 +154,11 @@
 //
 //     if (tcp_close(&server) != TCP_NO_ERROR) {
 //         fprintf(stderr, "Failed to close server socket.\n");
+//         write_to_log_process("Failed to close server socket.\n");
 //     }
 //
 //     printf("Connection manager shutting down\n");
+//     write_to_log_process("Connection manager shutting down\n");
 // }
 
 #include <stdio.h>
@@ -148,6 +168,9 @@
 #include "lib/tcpsock.h"
 #include "sbuffer.h"
 #include "connmgr.h"
+
+#include <inttypes.h>
+
 #include "sensor_db.h"
 
 int connmgr(int port, int max_conn, sbuffer_t *sbuffer) {
@@ -164,6 +187,7 @@ int connmgr(int port, int max_conn, sbuffer_t *sbuffer) {
         }
         cl_args[i]->buffer = sbuffer;
     }
+    write_to_log_process("Server started");
 
     // Start listening for client connections
     if (tcp_passive_open(&server, port) != TCP_NO_ERROR) {
@@ -207,6 +231,7 @@ int connection(void *connection_args) {
     int bytes, result;
     int id = 0;
     sensor_data_t data;
+    char logmsg[LOG_MESSAGE_LENGTH];
 
     do {
         // Read sensor ID
@@ -233,12 +258,30 @@ int connection(void *connection_args) {
         result = tcp_receive(cl_args->client, (void *)&data.ts, &bytes);
 
         if ((result == TCP_NO_ERROR) && bytes) {
-            sbuffer_insert(cl_args->buffer, &data, 0);
+            if (sbuffer_insert(cl_args->buffer, &data, 0) == SBUFFER_SUCCESS) {
+                char log1[256];  // Adjust the size as needed
+                snprintf(log1, sizeof(log1),
+                         "Conn MGR: Received data - Sensor ID: %" PRIu16 ", Temp: %g, Timestamp: %ld\n",
+                         data.id, data.value, (long)data.ts);
+                write_to_log_process(log1);
+            }
         }
     } while (result == TCP_NO_ERROR);
 
+    if (result == TCP_CONNECTION_CLOSED) {
+        sprintf(logmsg, "Sensor node %u has closed the connection", id);
+    }
+    // else if (result == TCP_CONNECTION_TIMEOUT) {
+    //     sprintf(logmsg, "Sensor node %u has timed out, connection closed", id);
+    // }
+    else {
+        sprintf(logmsg, "Error connecting to sensor node %u, connection closed", id);
+    }
+    write_to_log_process(logmsg);
+
     if (tcp_close(&cl_args->client) != TCP_NO_ERROR) {
-        // Handle error closing connection
+        sprintf(logmsg, "Connection with sensor node %u not closed correctly", id);
+        write_to_log_process(logmsg);
     }
 
     return 0;

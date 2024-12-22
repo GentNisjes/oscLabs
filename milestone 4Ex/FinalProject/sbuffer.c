@@ -3,6 +3,8 @@
 #include "config.h"
 #include "sbuffer.h"
 
+#include <stdio.h>
+
 /**
  * basic node for the buffer, these nodes are linked together to create the buffer
  */
@@ -62,6 +64,7 @@ int sbuffer_free(sbuffer_t **buffer) {
 }
 
 int sbuffer_remove(sbuffer_t *buffer, sensor_data_t *data, int stage) {
+    char logmsg[LOG_MESSAGE_LENGTH];
     sbuffer_node_t *dummy;
     pthread_mutex_lock(&buffermutex);
     if (buffer == NULL) {
@@ -70,6 +73,14 @@ int sbuffer_remove(sbuffer_t *buffer, sensor_data_t *data, int stage) {
     }
     while (buffer->head == NULL || buffer->head->stage != stage-1) {
         // block if head is null or node is at the wrong stage
+        write_to_log_process("SBuff REMOVE: waiting 4ever\n");
+        if (buffer->head == NULL) {
+            sprintf(logmsg, "SBuff REMOVE: The head is NULL, the current state: %i\n", stage);
+            write_to_log_process(logmsg);
+        } else {
+            sprintf(logmsg, "SBuff REMOVE: The head state: %i, the current state: %i\n", buffer->head->stage, stage);
+            write_to_log_process(logmsg);
+        }
         pthread_cond_wait(&updated, &buffermutex);
     }
     *data = buffer->head->data;
@@ -90,6 +101,7 @@ int sbuffer_remove(sbuffer_t *buffer, sensor_data_t *data, int stage) {
 }
 
 int sbuffer_read(sbuffer_t *buffer, sensor_data_t *data, int stage) {
+    char logmsg[LOG_MESSAGE_LENGTH];
     sbuffer_node_t *dummy;
     pthread_mutex_lock(&buffermutex);
     if (buffer == NULL) {
@@ -98,6 +110,14 @@ int sbuffer_read(sbuffer_t *buffer, sensor_data_t *data, int stage) {
     }
     while (buffer->head == NULL || buffer->tail->stage != stage-1) {
         // block if head is null or all nodes are at the wrong stage (if final node is at the wrong stage, all of them are)
+        write_to_log_process("SBuff REMOVE: waiting 4ever\n");
+        if (buffer->head == NULL) {
+            sprintf(logmsg, "SBuff READ: The head is NULL, the current state: %i\n", stage);
+            write_to_log_process(logmsg);
+        } else {
+            sprintf(logmsg, "SBuff READ: The head state: %i, the current state: %i\n", buffer->head->stage, stage);
+            write_to_log_process(logmsg);
+        }
         pthread_cond_wait(&filled, &buffermutex);
     }
     dummy = buffer->head;
