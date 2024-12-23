@@ -200,23 +200,62 @@ int tcp_send(tcpsock_t *socket, void *buffer, int *buf_size) {
     return TCP_NO_ERROR;
 }
 
-int tcp_receive(tcpsock_t *socket, void *buffer, int *buf_size) {
-    TCP_ERR_HANDLER(socket == NULL, return TCP_SOCKET_ERROR);
-    TCP_ERR_HANDLER(socket->cookie != MAGIC_COOKIE, return TCP_SOCKET_ERROR);
-    if ((buffer == NULL) || (buf_size == 0))  //nothing to read
-    {
-        *buf_size = 0;
+// THE FOLLOWING FUNCTION WAS WRITTEN WITH THE HELP OF CHATGPT
+// with the help of AI chatbot chatgpt I was able to find a solution for the time-out
+// case for the "inactive" sensor nodes
+// by telling the bot the goal of this function, we iterated through many solutions
+// until we got a working solution for the time-out problem.
+
+int tcp_receive(tcpsock_t *socket, void *buffer, int *buf_size, int timeout_sec) {
+    if (socket == NULL || timeout_sec < 0 || buffer == NULL || buf_size == NULL) {
+        TCP_DEBUG_PRINTF(1, "Invalid input parameters.\n");
+        return TCP_SOCKET_ERROR;
+    }
+
+    fd_set read_fd;
+    struct timeval timeout;
+
+    FD_ZERO(&read_fd);
+    FD_SET(socket->sd, &read_fd);
+
+    timeout.tv_sec = timeout_sec;
+    timeout.tv_usec = 0;
+
+    // Wait for the socket to be readable
+    int activity = select(socket->sd + 1, &read_fd, NULL, NULL, &timeout);
+
+    if (activity > 0 && FD_ISSET(socket->sd, &read_fd)) {
+        // Socket is ready for reading
+        int received_bytes = recv(socket->sd, buffer, *buf_size, 0);
+        if (received_bytes == 0) {
+            TCP_DEBUG_PRINTF(1, "Recv(): Connection closed by peer.\n");
+            *buf_size = 0;
+            return TCP_CONNECTION_CLOSED;
+        }
+        if (received_bytes < 0) {
+            if (errno == ENOTCONN) {
+                TCP_DEBUG_PRINTF(1, "Recv(): No connection to peer (ENOTCONN).\n");
+                TCP_ERR_HANDLER(1, return TCP_CONNECTION_CLOSED);
+            }
+            TCP_DEBUG_PRINTF(1, "Recv() failed with errno = %d [%s]\n", errno, strerror(errno));
+            TCP_ERR_HANDLER(1, return TCP_SOCKOP_ERROR);
+        }
+        *buf_size = received_bytes;
         return TCP_NO_ERROR;
     }
-    *buf_size = recv(socket->sd, buffer, *buf_size, 0);
-    TCP_DEBUG_PRINTF(*buf_size == 0, "Recv() : no connection to peer\n");
-    TCP_ERR_HANDLER(*buf_size == 0, return TCP_CONNECTION_CLOSED);
-    TCP_DEBUG_PRINTF((*buf_size < 0) && (errno == ENOTCONN), "Recv() : no connection to peer\n");
-    TCP_ERR_HANDLER((*buf_size < 0) && (errno == ENOTCONN), return TCP_CONNECTION_CLOSED);
-    TCP_DEBUG_PRINTF(*buf_size < 0, "Recv() failed with errno = %d [%s]", errno, strerror(errno));
-    TCP_ERR_HANDLER(*buf_size < 0, return TCP_SOCKOP_ERROR);
-    return TCP_NO_ERROR;
+
+    if (activity == 0) {
+        // Timeout reached
+        TCP_DEBUG_PRINTF(1, "Select(): Receive operation timed out.\n");
+        *buf_size = 0;
+        return TCP_CONNECTION_TIMEOUT;
+    }
+
+    // Error occurred during select()
+    TCP_DEBUG_PRINTF(1, "Select() failed with errno = %d [%s]\n", errno, strerror(errno));
+    return TCP_SOCKOP_ERROR;
 }
+
 
 int tcp_get_ip_addr(tcpsock_t *socket, char **ip_addr) {
     TCP_ERR_HANDLER(socket == NULL, return TCP_SOCKET_ERROR);

@@ -37,7 +37,14 @@ void *handle_client(void *args) {
     while (1) {
         // Receive sensor data
         bytes = sizeof(data.id);
-        result = tcp_receive(client, (void *)&data.id, &bytes);
+        result = tcp_receive(client, (void *)&data.id, &bytes, TIMEOUT);
+
+        if (result == TCP_CONNECTION_TIMEOUT) {
+            snprintf(logmsg, sizeof(logmsg), "Sensor node %u timed out", id);
+            write_to_log_process(logmsg);
+            break;
+        }
+
         if (result != TCP_NO_ERROR || bytes == 0) break;
 
         // Log the first connection of the sensor node
@@ -48,11 +55,11 @@ void *handle_client(void *args) {
         }
 
         bytes = sizeof(data.value);
-        result = tcp_receive(client, (void *)&data.value, &bytes);
+        result = tcp_receive(client, (void *)&data.value, &bytes, TIMEOUT);
         if (result != TCP_NO_ERROR || bytes == 0) break;
 
         bytes = sizeof(data.ts);
-        result = tcp_receive(client, (void *)&data.ts, &bytes);
+        result = tcp_receive(client, (void *)&data.ts, &bytes, TIMEOUT);
         if (result != TCP_NO_ERROR || bytes == 0) break;
 
         // Insert data into the shared buffer
