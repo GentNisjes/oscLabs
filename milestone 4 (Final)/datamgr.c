@@ -18,7 +18,7 @@ int datamgr(void* data_args) {
     // Part 1: make dplist from sensor_map
     list = dpl_create(element_copy, element_free, element_compare);
     if (datamgr_parse_map(SENSOR_MAP) != 0) {
-        //write_to_log_process("Error parsing" SENSOR_MAP ", shutting down data manager");
+        write_to_log_process("Error parsing" SENSOR_MAP ", shutting down data manager");
         return 1;
     }
     write_to_log_process("Finished parsing " SENSOR_MAP);
@@ -56,12 +56,12 @@ int datamgr(void* data_args) {
                     datamgr_get_avg(temp_node);
                 }
             } else { // end of buffer
-                write_to_log_process("Data MGR: received id is zero");
+                //write_to_log_process("Data MGR: received id is zero");
                 datamgr_free();
                 break;
             }
         } else {
-            write_to_log_process("Data MGR: read went wrong\n");
+            //write_to_log_process("Data MGR: read went wrong\n");
         }
     }
     return 0;

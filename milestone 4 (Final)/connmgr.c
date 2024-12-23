@@ -61,12 +61,12 @@ void *handle_client(void *args) {
         } else {
             //printf("[%s]              Conn MGR: Data inserted into buffer - Sensor ID: %" PRIu16 ", Temp: %g, Timestamp: %ld\n", get_timestamp(), data.id, data.value, (long)data.ts);
             //fflush(stderr);
-            char log1[256];  // Adjust the size as needed
-            snprintf(log1, sizeof(log1),
-                     "Conn MGR: Received data - Sensor ID: %" PRIu16 ", Temp: %g, Timestamp: %ld\n",
-                     data.id, data.value, (long)data.ts);
-
-            write_to_log_process(log1);
+            // char log1[256];  // Adjust the size as needed
+            // snprintf(log1, sizeof(log1),
+            //          "Conn MGR: Received data - Sensor ID: %" PRIu16 ", Temp: %g, Timestamp: %ld\n",
+            //          data.id, data.value, (long)data.ts);
+            //
+            // write_to_log_process(log1);
         }
     }
 
@@ -149,7 +149,7 @@ void connmgr(int port, int max_conn, sbuffer_t *buffer) {
     pthread_t accept_thread;
 
     printf("Conn MGR: Starting connection manager on port %d\n", port);
-    char log2[256];  // Adjust the size as needed
+    char log2[LOG_MESSAGE_LENGTH];
     snprintf(log2, sizeof(log2),
              "Conn MGR: Starting connection manager on port %d\n",
              port);
