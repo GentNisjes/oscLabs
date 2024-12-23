@@ -111,7 +111,7 @@ sensor_value_t datamgr_get_avg(my_element_t* node) {
     double average = 0;
     char logmsg[LOG_MESSAGE_LENGTH];
     for (int i=0; i<RUN_AVG_LENGTH; i++) {
-        if (node->running_avg[i] > -275) { // only count temperature if it is physically possible
+        if (node->running_avg[i] > -275) { // check if the read temp is physically realistic (not below the absolute zero 0K or -275°C)
             average += node->running_avg[i];
         }
     }
