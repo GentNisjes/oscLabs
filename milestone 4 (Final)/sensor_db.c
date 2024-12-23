@@ -33,7 +33,7 @@ int storagemgr(void* storage_args) {
     while (1) {
         // Get data from the buffer
         if (sbuffer_remove(args->buffer, &received_data, 2) == 0) {
-            sprintf(logmsg, "Data MGR: Data removed from buffer - Sensor ID: %d, Temp: %lf, Timestamp: %ld\n", received_data.id, received_data.value, received_data.ts);
+            sprintf(logmsg, "Data removed from buffer - Sensor ID: %d, Temp: %lf, Timestamp: %ld\n", received_data.id, received_data.value, received_data.ts);
             write_to_log_process(logmsg);
             // Check if the received data is valid (id != 0)
             if (received_data.id != 0) {
@@ -42,25 +42,25 @@ int storagemgr(void* storage_args) {
                 fflush(csv);
 
                 // Log the successful insertion
-                sprintf(logmsg, "Storage MGR: Data insertion from sensor %u succeeded.", received_data.id);
+                sprintf(logmsg, "Data insertion from sensor %u succeeded.", received_data.id);
                 write_to_log_process(logmsg);
             } else {
                 // Exit if the data is invalid or indicates no more data
+                // sprintf(logmsg, "ZERO ID: %d, %lf, %ld\n", received_data.id, received_data.value, received_data.ts);
+                // write_to_log_process(logmsg);
                 break;
             }
-        } else {
-            // Log a message if buffer is empty or no data available within the timeout period
-            //write_to_log_process("Storage MGR: Buffer empty or no data available within timeout.");
-            write_to_log_process("Storage MGR: Buffer empty or no data available within timeout. \n");
         }
+        // else {
+        //     // Log a message if buffer is empty or no data available within the timeout period
+        //     //write_to_log_process("Storage MGR: Buffer empty or no data available within timeout.");
+        //     write_to_log_process("Storage MGR: Buffer empty or no data available within timeout. \n");
+        // }
     }
 
+    write_to_log_process("Attempting to close the file...");
     // Close the CSV file when done
-    if (fclose(csv) != 0) {
-        write_to_log_process("Error closing " CSV_NAME ", bummer");
-    } else {
-        write_to_log_process("The " CSV_NAME " file has been closed.");
-    }
-
+    if (fclose(csv) != 0) {write_to_log_process("Error closing " CSV_NAME );}
+    write_to_log_process("The " CSV_NAME " file has been closed.");
     return 0;
 }

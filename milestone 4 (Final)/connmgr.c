@@ -137,7 +137,16 @@ void *accept_connections(void *args) {
         }
 
         pthread_detach(client_thread);
+        //pthread_join(client_thread, NULL);
     }
+
+    while (*conn_counter > 0) {
+        sleep(1); // Polling; consider condition variables for better efficiency
+    }
+
+    // Indicate end of sbuffer when max connections are reached
+    sensor_data_t end_signal = {0};
+    sbuffer_insert(buffer, &end_signal, 0);
 
     return NULL;
 }
