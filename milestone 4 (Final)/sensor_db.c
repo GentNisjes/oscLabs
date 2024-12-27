@@ -10,11 +10,6 @@
 #include "sbuffer.h"
 #include "sensor_db.h"
 
-// Function to log process events (as a placeholder for your actual logging function)
-// void write_to_log_process(const char* message) {
-//     fprintf(stderr, "%s\n", message);
-// }
-
 int storagemgr(void* storage_args) {
     storagemgr_args_t* args = (storagemgr_args_t*)storage_args;
     char logmsg[LOG_MESSAGE_LENGTH];
@@ -33,8 +28,8 @@ int storagemgr(void* storage_args) {
     while (1) {
         // Get data from the buffer
         if (sbuffer_remove(args->buffer, &received_data, 2) == 0) {
-            sprintf(logmsg, "Data removed from buffer - Sensor ID: %d, Temp: %lf, Timestamp: %ld\n", received_data.id, received_data.value, received_data.ts);
-            write_to_log_process(logmsg);
+            // sprintf(logmsg, "Data removed from buffer - Sensor ID: %d, Temp: %lf, Timestamp: %ld\n", received_data.id, received_data.value, received_data.ts);
+            // write_to_log_process(logmsg);
             // Check if the received data is valid (id != 0)
             if (received_data.id != 0) {
                 // Write the data to the CSV file

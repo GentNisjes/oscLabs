@@ -3,10 +3,10 @@
 #include <pthread.h>
 #include <sys/wait.h>
 
-#include "connmgr.h"    // Your connection manager header file
+#include "connmgr.h"    // connection manager header file
 #include "datamgr.h"
-#include "sbuffer.h"    // Your sbuffer header file
-#include "sensor_db.h" // Storage manager header file (assumed)
+#include "sbuffer.h"    // sbuffer header file
+#include "sensor_db.h" // Storage manager header file
 
 #define LOG_FILE_NAME  "gateway.log"
 
@@ -30,7 +30,7 @@ void *start_connmgr(void *args) {
 
 void *start_storagemgr(void *args) {
     storagemgr_args_t *sm_args = (storagemgr_args_t *)args;
-    storagemgr(sm_args->buffer); // Assuming storagemgr takes the shared buffer as argument
+    storagemgr(sm_args->buffer);
     return NULL;
 }
 
@@ -245,12 +245,4 @@ int end_log_process() {
     return 0;
 }
 
-// int sbuffer_free(sbuffer_t **shared_data) {
-//     if (*shared_data == NULL) {
-//         return SBUFFER_FAILURE;
-//     }
-//     // Free internal fields of `sbuffer_t` if needed
-//     free(*shared_data);
-//     *shared_data = NULL;
-//     return SBUFFER_SUCCESS;
-// }
+

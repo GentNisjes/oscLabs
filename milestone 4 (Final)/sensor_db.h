@@ -15,14 +15,9 @@ typedef struct {
     sbuffer_t *buffer;  // Shared buffer where data is stored
 } storagemgr_args_t;
 
-// Function declarations
-
 // Function to handle data storage
 // This function will be used to start the storage manager as a thread
 int storagemgr(void* storage_args);
-
-// Function to log process information (you can implement or replace this as needed)
-// void write_to_log_process(const char* message);
 
 #endif // SENSOR_DB_H
 
